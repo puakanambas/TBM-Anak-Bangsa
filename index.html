@@ -10,7 +10,8 @@
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
             background-color: #f1f5f9; 
-            -webkit-tap-highlight-color: transparent; 
+            -webkit-tap-highlight-color: transparent;
+            overflow: hidden; /* Mencegah scroll pada body utama untuk layout admin */
         }
         
         /* Animations */
@@ -18,33 +19,25 @@
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
         
         /* Custom Scrollbar */
-        .custom-scrollbar::-webkit-scrollbar { width: 6px; height: 6px; }
+        .custom-scrollbar::-webkit-scrollbar { width: 5px; height: 5px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
         .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
+        
+        .no-scrollbar::-webkit-scrollbar { display: none; }
+        .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
 
         /* Visual Elements */
         .curved-header { 
             background: linear-gradient(135deg, #059669 0%, #047857 100%); 
-            border-bottom-left-radius: 40px; 
-            border-bottom-right-radius: 40px; 
-            padding-bottom: 80px; 
-            box-shadow: 0 20px 40px -10px rgba(5, 150, 105, 0.3); 
+            border-bottom-left-radius: 30px; 
+            border-bottom-right-radius: 30px; 
+            padding-bottom: 60px; 
+            box-shadow: 0 15px 30px -10px rgba(5, 150, 105, 0.3); 
             position: relative;
             overflow: hidden;
         }
         
-        .curved-header::before {
-            content: '';
-            position: absolute;
-            top: -50%;
-            left: -50%;
-            width: 200%;
-            height: 200%;
-            background: radial-gradient(circle, rgba(255,255,255,0.1) 0%, transparent 60%);
-            pointer-events: none;
-        }
-
         .input-field { 
             width: 100%; padding: 12px 16px; border-radius: 12px; 
             border: 1px solid #e2e8f0; background: #f8fafc; 
@@ -58,49 +51,65 @@
 
         /* Charts CSS */
         .donut-chart { 
-            position: relative; width: 80px; height: 80px; border-radius: 50%; 
+            position: relative; width: 70px; height: 70px; border-radius: 50%; 
             background: conic-gradient(var(--color) var(--percent), #e2e8f0 0); 
             display: flex; align-items: center; justify-content: center; 
-            transition: all 0.5s ease;
         }
         .donut-inner { 
-            width: 64px; height: 64px; background: white; border-radius: 50%; 
+            width: 56px; height: 56px; background: white; border-radius: 50%; 
             display: flex; flex-direction: column; align-items: center; 
-            justify-content: center; font-weight: 800; font-size: 16px; color: #334155; 
-            box-shadow: inset 0 2px 4px rgba(0,0,0,0.05);
+            justify-content: center; font-weight: 800; font-size: 14px; color: #334155; 
         }
 
-        /* PRINT STYLES */
+        /* Toast Notification */
+        #toast-container { position: fixed; top: 20px; left: 50%; transform: translateX(-50%); z-index: 10000; display: flex; flex-direction: column; gap: 10px; width: 90%; max-width: 400px; pointer-events: none; }
+        .toast { background: white; padding: 12px 16px; border-radius: 12px; box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1); display: flex; items-center; gap: 10px; animation: toastIn 0.3s cubic-bezier(0.16, 1, 0.3, 1); pointer-events: auto; border-left: 4px solid; }
+        .toast.success { border-left-color: #10b981; }
+        .toast.error { border-left-color: #ef4444; }
+        .toast.info { border-left-color: #3b82f6; }
+        @keyframes toastIn { from { opacity: 0; transform: translateY(-20px); } to { opacity: 1; transform: translateY(0); } }
+        @keyframes toastOut { to { opacity: 0; transform: translateY(-20px); } }
+
+        /* Print CSS */
         @media print { 
-            body * { visibility: hidden; }
-            #printArea, #printArea * { 
-                visibility: visible !important; 
-                display: block !important;
-            }
-            #printArea { 
-                position: absolute; 
-                left: 0; top: 0; width: 100%; margin: 0; padding: 0;
-                background: white; 
-                z-index: 9999;
-            }
-            @page { margin: 0.5cm; size: auto; }
+            body > *:not(#printArea) { display: none !important; }
+            #printArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: white; z-index: 9999; }
+            #printArea table { width: 100%; border-collapse: collapse; }
+            #printArea th, #printArea td { border: 1px solid #000; padding: 8px; }
             * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+            @page { margin: 1cm; size: auto; }
         }
     </style>
 </head>
-<body class="text-slate-800 min-h-screen flex flex-col bg-slate-100 overflow-x-hidden">
+<body class="text-slate-800 h-screen w-full flex flex-col bg-slate-100">
+
+    <!-- TOAST CONTAINER -->
+    <div id="toast-container"></div>
 
     <!-- MAIN APP CONTAINER -->
-    <div id="app" class="flex-1 flex flex-col w-full mx-auto relative"></div>
+    <div id="app" class="flex-1 flex flex-col w-full h-full overflow-hidden"></div>
 
-    <!-- MODAL COMPONENT -->
+    <!-- GENERAL MODAL -->
     <div id="modalOverlay" class="fixed inset-0 bg-slate-900/70 backdrop-blur-sm hidden items-center justify-center z-50 p-4 transition-opacity duration-300">
         <div class="bg-white w-full max-w-lg rounded-3xl shadow-2xl overflow-hidden transform transition-all scale-100 flex flex-col max-h-[90vh] fade-in">
             <div class="p-5 border-b border-slate-100 flex justify-between items-center bg-white sticky top-0 z-10">
-                <h3 id="modalTitle" class="font-bold text-xl text-slate-800 tracking-tight">Judul Modal</h3>
+                <h3 id="modalTitle" class="font-bold text-lg text-slate-800 tracking-tight">Judul Modal</h3>
                 <button onclick="closeModal()" class="w-8 h-8 rounded-full bg-slate-50 text-slate-400 flex items-center justify-center hover:bg-red-50 hover:text-red-500 transition font-bold text-lg">&times;</button>
             </div>
             <div id="modalContent" class="p-6 overflow-y-auto custom-scrollbar bg-white"></div>
+        </div>
+    </div>
+
+    <!-- CONFIRMATION MODAL -->
+    <div id="confirmOverlay" class="fixed inset-0 bg-slate-900/80 backdrop-blur-sm hidden items-center justify-center z-[60] p-6">
+        <div class="bg-white w-full max-w-xs rounded-3xl shadow-2xl p-6 fade-in text-center">
+            <div class="w-12 h-12 bg-orange-100 text-orange-500 rounded-full flex items-center justify-center mx-auto mb-4 text-2xl">⚠️</div>
+            <h3 class="font-bold text-lg text-slate-800 mb-2">Konfirmasi</h3>
+            <p id="confirmMessage" class="text-slate-500 text-sm mb-6">Apakah Anda yakin ingin melanjutkan?</p>
+            <div class="flex gap-3">
+                <button onclick="closeConfirm(false)" class="flex-1 py-2.5 rounded-xl bg-slate-100 text-slate-600 font-bold text-sm">Batal</button>
+                <button id="confirmYesBtn" onclick="closeConfirm(true)" class="flex-1 py-2.5 rounded-xl bg-orange-500 text-white font-bold text-sm shadow-lg shadow-orange-200">Ya, Yakin</button>
+            </div>
         </div>
     </div>
 
@@ -121,12 +130,12 @@
                 { id: 4, title: "Filosofi Teras", author: "Henry Manampiring", isbn: "978-602-412-518-9", category: "Filsafat", stock: 7, shelf: "B-02", createdBy: 'admin' }
             ],
             members: [
-                { id: "AGT-2024001", name: "Siti Aisyah", type: "Pelajar", nik: "1234567890", gender: "P", birthPlace: "Tarempa", birthDate: "2005-05-12", phone: "08123456789", address: "Jl. Hang Tuah No. 5", photo: null, active: true, createdBy: 'admin', joinDate: '2024-01-15' },
-                { id: "AGT-2024002", name: "Budi Santoso", type: "Umum", nik: "0987654321", gender: "L", birthPlace: "Letung", birthDate: "1995-08-20", phone: "08987654321", address: "Jl. Imam Bonjol No. 88", photo: null, active: true, createdBy: 'admin', joinDate: '2024-02-01' }
+                { id: "AGT-2025001", name: "Siti Aisyah", type: "Pelajar", nik: "1234567890", gender: "P", birthPlace: "Tarempa", birthDate: "2010-05-12", phone: "08123456789", address: "Jl. Hang Tuah No. 5", photo: null, active: true, createdBy: 'admin', joinDate: '2025-01-15' },
+                { id: "AGT-2025002", name: "Budi Santoso", type: "Umum", nik: "0987654321", gender: "L", birthPlace: "Letung", birthDate: "1995-08-20", phone: "08987654321", address: "Jl. Imam Bonjol No. 88", photo: null, active: true, createdBy: 'admin', joinDate: '2025-02-01' }
             ],
             loans: [],
             visitors: [],
-            users: [{ id: 'admin', name: "Administrator", role: "admin", password: "admin", active: true }]
+            users: [{ id: 'admin', name: "admin", role: "admin", password: "admin", active: true }]
         };
 
         // Init State
@@ -143,6 +152,51 @@
         let editUserId = null; 
         let photoPreview = null;
         let filterStart = '', filterEnd = '', searchTerm = '', printSearch = '', catalogSearch = '';
+        let pendingAction = null;
+
+        /**
+         * ------------------------------------------------------------------
+         * UI UTILITIES
+         * ------------------------------------------------------------------
+         */
+        function showToast(message, type = 'info') {
+            const container = document.getElementById('toast-container');
+            const toast = document.createElement('div');
+            toast.className = `toast ${type}`;
+            
+            const icon = type === 'success' ? '✅' : type === 'error' ? '❌' : 'ℹ️';
+            
+            toast.innerHTML = `
+                <div class="text-lg">${icon}</div>
+                <div class="font-bold text-sm text-slate-800">${message}</div>
+            `;
+            
+            container.appendChild(toast);
+            
+            setTimeout(() => {
+                toast.style.animation = 'toastOut 0.3s forwards';
+                setTimeout(() => toast.remove(), 300);
+            }, 3000);
+        }
+
+        function confirmAction(message, callback) {
+            const overlay = document.getElementById('confirmOverlay');
+            document.getElementById('confirmMessage').innerText = message;
+            pendingAction = callback;
+            overlay.classList.remove('hidden');
+            overlay.classList.add('flex');
+        }
+
+        function closeConfirm(isConfirmed) {
+            const overlay = document.getElementById('confirmOverlay');
+            overlay.classList.add('hidden');
+            overlay.classList.remove('flex');
+            
+            if (isConfirmed && pendingAction) {
+                pendingAction();
+            }
+            pendingAction = null;
+        }
 
         /**
          * ------------------------------------------------------------------
@@ -171,15 +225,27 @@
         }
 
         function login(u, p) { 
-            const user = users.find(x => x.name.toLowerCase() === u.toLowerCase() && x.password === p && x.active); 
+            const cleanUser = u.trim().toLowerCase(); 
+            const cleanPass = p.trim(); 
+
+            const user = users.find(x => x.name.toLowerCase() === cleanUser && x.password === cleanPass && x.active); 
+            
             if(user) { 
                 currentUser = user; 
                 closeModal(); 
                 setView('admin'); 
                 setTab('dashboard'); 
+                showToast(`Selamat datang, ${user.name}!`, 'success');
             } else {
-                alert("Login Gagal! Username atau password salah."); 
+                showToast('Username atau Password salah!', 'error');
             }
+        }
+
+        function requestReset() {
+            confirmAction("Hapus semua data dan kembali ke default?", () => {
+                localStorage.clear();
+                location.reload();
+            });
         }
 
         function canEdit(item) { 
@@ -207,17 +273,16 @@
             const tv = visitors.filter(v => v.date === today).length;
 
             container.innerHTML = `
-                <div class="min-h-screen flex justify-center bg-slate-50">
-                    <div class="w-full max-w-md bg-white shadow-2xl relative flex flex-col min-h-screen overflow-hidden">
+                <div class="w-full h-full overflow-y-auto bg-slate-50 custom-scrollbar">
+                    <div class="w-full max-w-md mx-auto bg-white shadow-2xl relative flex flex-col min-h-screen overflow-hidden">
                         <!-- Header -->
                         <div class="curved-header pt-12 px-6 text-center relative">
                             <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                            <div class="bg-white/20 backdrop-blur-md w-20 h-20 mx-auto rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-lg">
-                                <svg class="w-10 h-10 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                            <div class="bg-white/20 backdrop-blur-md w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-lg">
+                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
                             </div>
-                            <!-- NAMA APLIKASI DIUBAH DI SINI -->
                             <h1 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-sm uppercase">TBM Anak Bangsa</h1>
-                            <p class="text-emerald-100 text-sm font-medium mt-1 opacity-90">Kabupaten Kepulauan Anambas</p>
+                            <p class="text-emerald-100 text-sm font-medium mt-1 opacity-90">Kab. Kepulauan Anambas</p>
                             
                             <button onclick="openLoginModal()" class="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-2 rounded-xl text-white transition backdrop-blur-md border border-white/20">
                                 <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
@@ -225,113 +290,105 @@
                         </div>
 
                         <!-- Main Content -->
-                        <div class="px-6 -mt-14 relative z-10 space-y-5 fade-in pb-10">
+                        <div class="px-6 -mt-10 relative z-10 space-y-5 fade-in pb-10">
                             <!-- Stats Card -->
                             <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex justify-between items-center">
                                 <div class="flex flex-col items-center group cursor-pointer">
-                                    <div class="donut-chart group-hover:scale-105" style="--color: #3b82f6; --percent: 75%;">
+                                    <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #3b82f6; --percent: 75%;">
                                         <div class="donut-inner text-blue-600">${tb}</div>
                                     </div>
-                                    <span class="text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Koleksi</span>
+                                    <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Koleksi</span>
                                 </div>
-                                <div class="w-px h-12 bg-slate-100"></div>
+                                <div class="w-px h-10 bg-slate-100"></div>
                                 <div class="flex flex-col items-center group cursor-pointer">
-                                    <div class="donut-chart group-hover:scale-105" style="--color: #a855f7; --percent: 60%;">
+                                    <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #a855f7; --percent: 60%;">
                                         <div class="donut-inner text-purple-600">${tm}</div>
                                     </div>
-                                    <span class="text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Anggota</span>
+                                    <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Anggota</span>
                                 </div>
-                                <div class="w-px h-12 bg-slate-100"></div>
+                                <div class="w-px h-10 bg-slate-100"></div>
                                 <div class="flex flex-col items-center group cursor-pointer">
-                                    <div class="donut-chart group-hover:scale-105" style="--color: #f97316; --percent: ${Math.min(tv*10,100)}%;">
+                                    <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #f97316; --percent: ${Math.min(tv*10,100)}%;">
                                         <div class="donut-inner text-orange-600">${tv}</div>
                                     </div>
-                                    <span class="text-[11px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Tamu</span>
+                                    <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Tamu</span>
                                 </div>
                             </div>
 
                             <!-- Menu Buttons -->
-                            <button onclick="openVisitorForm()" class="w-full bg-white p-5 rounded-3xl shadow-md border border-slate-50 flex items-center gap-5 hover:shadow-lg hover:border-orange-100 transition-all active:scale-[0.98] group relative overflow-hidden">
+                            <button onclick="openVisitorForm()" class="w-full bg-white p-4 rounded-3xl shadow-md border border-slate-50 flex items-center gap-4 hover:shadow-lg hover:border-orange-100 transition-all active:scale-[0.98] group relative overflow-hidden">
                                 <div class="absolute inset-0 bg-orange-50 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-                                <div class="w-14 h-14 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center shadow-sm relative z-10 group-hover:scale-110 transition-transform">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center shadow-sm relative z-10 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
                                 </div>
                                 <div class="text-left relative z-10">
-                                    <h3 class="font-bold text-xl text-slate-800 group-hover:text-orange-700 transition-colors">Buku Tamu</h3>
-                                    <p class="text-slate-500 text-sm">Isi kehadiran pengunjung</p>
-                                </div>
-                                <div class="ml-auto text-slate-300 relative z-10">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    <h3 class="font-bold text-lg text-slate-800 group-hover:text-orange-700 transition-colors">Buku Tamu</h3>
+                                    <p class="text-slate-500 text-xs">Isi kehadiran pengunjung</p>
                                 </div>
                             </button>
 
-                            <button onclick="openCatalog()" class="w-full bg-white p-5 rounded-3xl shadow-md border border-slate-50 flex items-center gap-5 hover:shadow-lg hover:border-blue-100 transition-all active:scale-[0.98] group relative overflow-hidden">
+                            <button onclick="openCatalog()" class="w-full bg-white p-4 rounded-3xl shadow-md border border-slate-50 flex items-center gap-4 hover:shadow-lg hover:border-blue-100 transition-all active:scale-[0.98] group relative overflow-hidden">
                                 <div class="absolute inset-0 bg-blue-50 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-                                <div class="w-14 h-14 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm relative z-10 group-hover:scale-110 transition-transform">
-                                    <svg class="w-7 h-7" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm relative z-10 group-hover:scale-110 transition-transform">
+                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
                                 </div>
                                 <div class="text-left relative z-10">
-                                    <h3 class="font-bold text-xl text-slate-800 group-hover:text-blue-700 transition-colors">Cari Buku</h3>
-                                    <p class="text-slate-500 text-sm">Lihat stok & lokasi buku</p>
-                                </div>
-                                <div class="ml-auto text-slate-300 relative z-10">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7"/></svg>
+                                    <h3 class="font-bold text-lg text-slate-800 group-hover:text-blue-700 transition-colors">Cari Buku</h3>
+                                    <p class="text-slate-500 text-xs">Lihat stok & lokasi buku</p>
                                 </div>
                             </button>
 
-                            <div class="text-center mt-10">
-                                <p class="text-xs text-slate-400 font-medium">© 2024 TBM Anak Bangsa</p>
+                            <div class="text-center mt-8">
+                                <p class="text-[10px] text-slate-400 font-medium">© 2025 TBM Anak Bangsa</p>
                             </div>
                         </div>
                     </div>
                 </div>`;
         }
 
-        // --- ADMIN VIEW ---
+        // --- ADMIN VIEW (FIXED LAYOUT) ---
         function renderAdmin(container) {
             const isAdmin = currentUser && currentUser.role === 'admin';
             
             let content = `
-            <div class="flex min-h-screen bg-slate-100">
-                <!-- Sidebar (Desktop) -->
-                <div class="hidden md:flex flex-col w-64 bg-slate-900 text-white fixed h-full shadow-2xl z-20">
+            <div class="flex h-full w-full bg-slate-100 overflow-hidden">
+                <!-- Sidebar (Desktop) - Fixed Width, Full Height -->
+                <div class="hidden md:flex flex-col w-64 bg-slate-900 text-white h-full flex-shrink-0 shadow-2xl relative z-30">
                     <div class="p-6 border-b border-slate-800 flex flex-col items-center">
-                        <div class="w-16 h-16 bg-emerald-500 rounded-2xl flex items-center justify-center text-3xl mb-3 shadow-lg shadow-emerald-500/30">📚</div>
-                        <!-- SIDEBAR TITLE -->
+                        <div class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-2xl mb-3 shadow-lg">📚</div>
                         <div class="font-bold text-lg tracking-wide text-center leading-tight">TBM Anak Bangsa</div>
-                        <div class="text-[10px] text-slate-400 mt-1">Kab. Kepulauan Anambas</div>
-                        <div class="text-xs text-emerald-300 mt-2 bg-slate-800 px-3 py-1 rounded-full">${currentUser.role === 'admin' ? 'Administrator' : 'Petugas'}</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Anambas</div>
+                        <div class="text-[10px] text-emerald-300 mt-2 bg-slate-800 px-3 py-1 rounded-full uppercase font-bold">${currentUser.role}</div>
                     </div>
                     <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
                         ${renderSidebar('dashboard','Dashboard', 'M4 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2V6zM14 6a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2V6zM4 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2H6a2 2 0 01-2-2v-2zM14 16a2 2 0 012-2h2a2 2 0 012 2v2a2 2 0 01-2 2h-2a2 2 0 01-2-2v-2z')}
-                        ${renderSidebar('anggota','Data Anggota', 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z')}
-                        ${renderSidebar('buku','Data Buku', 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253')}
+                        ${renderSidebar('anggota','Anggota', 'M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z')}
+                        ${renderSidebar('buku','Buku', 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253')}
                         ${renderSidebar('peminjaman','Sirkulasi', 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4')}
-                        ${isAdmin ? renderSidebar('laporan','Laporan & Cetak', 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z') : ''}
+                        ${isAdmin ? renderSidebar('laporan','Laporan', 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z') : ''}
                         ${isAdmin ? renderSidebar('pengaturan','Pengaturan', 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z') : ''}
                     </nav>
                     <div class="p-4 border-t border-slate-800">
-                        <button onclick="setView('visitor')" class="w-full bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2">
-                            <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                            Keluar
+                        <button onclick="setView('visitor')" class="w-full bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm">
+                           <span>🚪</span> Keluar
                         </button>
                     </div>
                 </div>
 
-                <!-- Main Content Wrapper -->
-                <div class="flex-1 md:ml-64 flex flex-col min-h-screen transition-all">
+                <!-- Content Wrapper (Flex Grow) - Handles scrolling internally -->
+                <div class="flex-1 flex flex-col h-full relative overflow-hidden w-full">
                     
                     <!-- Mobile Header -->
-                    <div class="md:hidden bg-white p-4 shadow-sm flex justify-between items-center sticky top-0 z-30 border-b border-slate-200">
+                    <div class="md:hidden bg-white px-4 py-3 shadow-sm flex justify-between items-center shrink-0 z-20 border-b border-slate-200">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold">S</div>
-                            <div class="font-bold text-lg text-slate-800">Panel ${isAdmin?'Admin':'Petugas'}</div>
+                            <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
+                            <div class="font-bold text-base text-slate-800 truncate max-w-[150px]">Panel Admin</div>
                         </div>
-                        <button onclick="setView('visitor')" class="text-xs bg-red-50 text-red-500 px-3 py-2 rounded-lg font-bold border border-red-100">Keluar</button>
+                        <button onclick="setView('visitor')" class="text-[10px] bg-red-50 text-red-500 px-3 py-1.5 rounded-lg font-bold border border-red-100">Keluar</button>
                     </div>
 
                     <!-- Mobile Tabs -->
-                    <div class="md:hidden bg-white border-b border-slate-200 overflow-x-auto flex gap-2 p-3 sticky top-[66px] z-20 no-scrollbar">
+                    <div class="md:hidden bg-white border-b border-slate-200 overflow-x-auto flex gap-2 p-2 shrink-0 z-10 no-scrollbar">
                         ${renderMTab('dashboard')}
                         ${renderMTab('anggota')}
                         ${renderMTab('buku')}
@@ -340,123 +397,82 @@
                         ${isAdmin ? renderMTab('pengaturan') : ''}
                     </div>
 
-                    <div class="p-5 md:p-8 fade-in w-full max-w-7xl mx-auto">`;
+                    <!-- SCROLLABLE CONTENT AREA -->
+                    <div class="flex-1 overflow-y-auto p-4 md:p-8 w-full custom-scrollbar pb-24 md:pb-8">
+                        <div class="max-w-6xl mx-auto w-full">`;
 
             // --- CONTENT LOGIC ---
             if(adminTab==='dashboard') {
                 content += `
-                    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-8 text-white shadow-xl mb-8 relative overflow-hidden">
-                        <div class="absolute top-0 right-0 w-64 h-64 bg-white/10 rounded-full -mr-16 -mt-16 blur-3xl"></div>
+                    <div class="bg-gradient-to-br from-emerald-600 to-teal-700 rounded-3xl p-6 md:p-8 text-white shadow-xl mb-6 relative overflow-hidden w-full">
+                        <div class="absolute top-0 right-0 w-48 h-48 bg-white/10 rounded-full -mr-10 -mt-10 blur-3xl"></div>
                         <div class="relative z-10">
-                            <h2 class="text-3xl font-bold mb-2">Halo, ${currentUser.name}!</h2>
-                            <p class="opacity-90 text-emerald-100">Selamat datang kembali di dashboard manajemen TBM Anak Bangsa.</p>
+                            <h2 class="text-2xl md:text-3xl font-bold mb-2">Halo, ${currentUser.name}!</h2>
+                            <p class="opacity-90 text-xs md:text-sm">Selamat datang di Panel Administrasi TBM Anak Bangsa.</p>
                         </div>
                     </div>
-                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
-                        ${renderStat('Total Buku', books.length, 'blue', '📚')}
+                    <div class="grid grid-cols-2 lg:grid-cols-4 gap-3 md:gap-6 w-full">
+                        ${renderStat('Buku', books.length, 'blue', '📚')}
                         ${renderStat('Anggota', members.length, 'purple', '👥')}
                         ${renderStat('Dipinjam', loans.filter(l => l.status === 'Dipinjam').length, 'orange', '⏳')}
-                        ${renderStat('Tamu Hari Ini', visitors.length, 'emerald', '📝')}
+                        ${renderStat('Tamu', visitors.length, 'emerald', '📝')}
                     </div>`;
             }
-            // ... (Bagian Data Anggota, Buku, Peminjaman sama seperti sebelumnya)
             else if(['anggota','buku','peminjaman'].includes(adminTab)) {
                 content += `
-                    <div class="bg-white p-5 rounded-2xl shadow-sm mb-6 border border-slate-200 flex flex-col md:flex-row md:items-end gap-4">
-                        <div class="flex-1">
-                            <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">Pencarian</label>
-                            <div class="relative">
-                                <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                                <input type="text" placeholder="Cari data..." class="input-field pl-10" value="${searchTerm}" oninput="searchTerm=this.value; render()">
-                            </div>
+                    <div class="bg-white p-4 rounded-2xl shadow-sm mb-4 border border-slate-200 flex flex-col gap-3 sticky top-0 z-10">
+                        <div class="relative w-full">
+                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400 text-sm">🔍</span>
+                            <input type="text" placeholder="Cari data..." class="input-field pl-9" value="${searchTerm}" oninput="searchTerm=this.value; render()">
                         </div>
                         ${adminTab === 'peminjaman' ? `
-                        <div class="grid grid-cols-2 gap-2 md:w-1/3">
-                            <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">Dari</label>
-                                <input type="date" class="input-field" value="${filterStart}" onchange="filterStart=this.value; render()">
-                            </div>
-                            <div>
-                                <label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide mb-1 block">Sampai</label>
-                                <input type="date" class="input-field" value="${filterEnd}" onchange="filterEnd=this.value; render()">
-                            </div>
+                        <div class="grid grid-cols-2 gap-2 w-full">
+                            <input type="date" class="input-field text-xs" value="${filterStart}" onchange="filterStart=this.value; render()">
+                            <input type="date" class="input-field text-xs" value="${filterEnd}" onchange="filterEnd=this.value; render()">
                         </div>` : ''}
-                        <div class="flex gap-2 mt-2 md:mt-0">
-                            ${isAdmin ? `<button onclick="printRecapNew('${adminTab}')" class="bg-slate-800 text-white px-5 py-2.5 rounded-xl font-bold shadow hover:bg-slate-700 flex items-center gap-2 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z"/></svg><span class="hidden sm:inline">Cetak</span></button>` : ''}
-                            <button onclick="${adminTab==='anggota'?'modalAnggota()':adminTab==='buku'?'modalBuku()':'modalPinjam()'}" class="bg-emerald-600 text-white px-5 py-2.5 rounded-xl font-bold shadow hover:bg-emerald-700 flex items-center gap-2 transition"><svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"/></svg><span class="hidden sm:inline">Tambah</span></button>
+                        <div class="flex gap-2 w-full">
+                            ${isAdmin ? `<button onclick="printRecapNew('${adminTab}')" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs flex-1 shadow hover:bg-slate-700">Cetak</button>` : ''}
+                            <button onclick="${adminTab==='anggota'?'modalAnggota()':adminTab==='buku'?'modalBuku()':'modalPinjam()'}" class="bg-emerald-600 text-white px-4 py-2 rounded-xl font-bold text-xs flex-1 shadow hover:bg-emerald-700">Tambah</button>
                         </div>
                     </div>`;
 
                 if(adminTab==='anggota') {
                     const filtered = members.filter(m => m.name.toLowerCase().includes(searchTerm.toLowerCase()) || m.id.includes(searchTerm));
-                    content += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5 pb-20">${filtered.length ? filtered.map(m => renderMemberCard(m)).join('') : '<div class="col-span-full text-center py-20 text-slate-400">Data tidak ditemukan</div>'}</div>`;
+                    content += `<div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 w-full">${filtered.length ? filtered.map(m => renderMemberCard(m)).join('') : '<div class="col-span-full text-center py-10 text-slate-400 text-sm">Data tidak ditemukan</div>'}</div>`;
                 } else if(adminTab==='buku') {
                     const filtered = books.filter(b => b.title.toLowerCase().includes(searchTerm.toLowerCase()) || b.author.toLowerCase().includes(searchTerm.toLowerCase()));
-                    content += `<div class="grid grid-cols-1 md:grid-cols-2 gap-4 pb-20">${filtered.length ? filtered.map(b => renderBookCard(b)).join('') : '<div class="col-span-full text-center py-20 text-slate-400">Data tidak ditemukan</div>'}</div>`;
+                    content += `<div class="grid grid-cols-1 md:grid-cols-2 gap-3 w-full">${filtered.length ? filtered.map(b => renderBookCard(b)).join('') : '<div class="col-span-full text-center py-10 text-slate-400 text-sm">Data tidak ditemukan</div>'}</div>`;
                 } else {
                     let f = loans.filter(l => l.bookTitle.toLowerCase().includes(searchTerm.toLowerCase()) || l.memberName.toLowerCase().includes(searchTerm.toLowerCase()));
                     if(filterStart && filterEnd) f = f.filter(l => l.date >= filterStart && l.date <= filterEnd);
-                    content += `<div class="space-y-3 pb-20">${f.length === 0 ? '<div class="text-center text-slate-400 py-20 border-2 border-dashed border-slate-200 rounded-3xl">Tidak ada data sirkulasi.</div>' : ''}${f.slice().reverse().map(l => renderLoanCard(l)).join('')}</div>`;
+                    content += `<div class="space-y-3 w-full">${f.length === 0 ? '<div class="text-center text-slate-400 py-10 text-sm border-2 border-dashed border-slate-200 rounded-xl">Tidak ada data.</div>' : ''}${f.slice().reverse().map(l => renderLoanCard(l)).join('')}</div>`;
                 }
             }
             else if(adminTab==='laporan' && isAdmin) {
                 content += `
-                <div class="grid grid-cols-1 lg:grid-cols-2 gap-6 pb-20">
-                    <!-- Laporan Panel -->
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
-                        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100">
-                            <div class="w-12 h-12 bg-blue-50 text-blue-600 rounded-2xl flex items-center justify-center text-2xl">📊</div>
-                            <div><h3 class="font-bold text-lg text-slate-800">Laporan & Rekap</h3><p class="text-sm text-slate-500">Cetak laporan periodik</p></div>
+                <div class="grid grid-cols-1 gap-4 w-full">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 w-full">
+                        <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2"><span class="text-blue-600">📊</span> Laporan</h3>
+                        <div class="grid grid-cols-2 gap-2 mb-4">
+                            <input type="date" id="repStart" class="input-field text-xs">
+                            <input type="date" id="repEnd" class="input-field text-xs">
                         </div>
-                        <div class="space-y-5">
-                            <div class="grid grid-cols-2 gap-3 bg-slate-50 p-4 rounded-2xl border border-slate-100">
-                                <div><label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Dari</label><input type="date" id="repStart" class="input-field bg-white h-10 mt-1"></div>
-                                <div><label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Sampai</label><input type="date" id="repEnd" class="input-field bg-white h-10 mt-1"></div>
-                            </div>
-                            <div class="space-y-3">
-                                <button onclick="printRecapNew('anggota')" class="w-full flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition group">
-                                    <div class="flex items-center gap-3"><span class="text-xl">👥</span> <span class="font-bold text-slate-700">Data Anggota</span></div>
-                                    <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold group-hover:bg-slate-200">CETAK SEMUA</span>
-                                </button>
-                                <button onclick="printRecapNew('buku')" class="w-full flex justify-between items-center p-4 border border-slate-100 rounded-2xl hover:bg-slate-50 hover:border-slate-300 transition group">
-                                    <div class="flex items-center gap-3"><span class="text-xl">📚</span> <span class="font-bold text-slate-700">Stok Buku</span></div>
-                                    <span class="bg-slate-100 text-slate-600 px-3 py-1 rounded-lg text-xs font-bold group-hover:bg-slate-200">CETAK SEMUA</span>
-                                </button>
-                                <button onclick="printRecapSirkulasiCustom('peminjaman')" class="w-full flex justify-between items-center p-4 border border-orange-100 bg-orange-50/50 rounded-2xl hover:bg-orange-50 hover:border-orange-300 transition group">
-                                    <div class="flex items-center gap-3"><span class="text-xl">🔄</span> <span class="font-bold text-slate-700">Sirkulasi Peminjaman</span></div>
-                                    <span class="bg-orange-100 text-orange-700 px-3 py-1 rounded-lg text-xs font-bold group-hover:bg-orange-200">CETAK PERIODE</span>
-                                </button>
-                                <button onclick="printRecapSirkulasiCustom('visitor')" class="w-full flex justify-between items-center p-4 border border-purple-100 bg-purple-50/50 rounded-2xl hover:bg-purple-50 hover:border-purple-300 transition group">
-                                    <div class="flex items-center gap-3"><span class="text-xl">📝</span> <span class="font-bold text-slate-700">Buku Tamu</span></div>
-                                    <span class="bg-purple-100 text-purple-700 px-3 py-1 rounded-lg text-xs font-bold group-hover:bg-purple-200">CETAK PERIODE</span>
-                                </button>
-                            </div>
+                        <div class="space-y-2">
+                            <button onclick="printRecapNew('anggota')" class="w-full text-left p-3 border rounded-xl text-sm font-bold hover:bg-slate-50 flex justify-between"><span>Data Anggota</span> <span>🖨️</span></button>
+                            <button onclick="printRecapNew('buku')" class="w-full text-left p-3 border rounded-xl text-sm font-bold hover:bg-slate-50 flex justify-between"><span>Stok Buku</span> <span>🖨️</span></button>
+                            <button onclick="printRecapSirkulasiCustom('peminjaman')" class="w-full text-left p-3 border border-orange-200 bg-orange-50 rounded-xl text-sm font-bold flex justify-between text-orange-700"><span>Sirkulasi</span> <span>🖨️</span></button>
+                            <button onclick="printRecapSirkulasiCustom('visitor')" class="w-full text-left p-3 border border-purple-200 bg-purple-50 rounded-xl text-sm font-bold flex justify-between text-purple-700"><span>Buku Tamu</span> <span>🖨️</span></button>
                         </div>
                     </div>
 
-                    <!-- Cetak Kartu Panel -->
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
-                        <div class="flex items-center gap-4 mb-6 pb-4 border-b border-slate-100">
-                            <div class="w-12 h-12 bg-emerald-50 text-emerald-600 rounded-2xl flex items-center justify-center text-2xl">🆔</div>
-                            <div><h3 class="font-bold text-lg text-slate-800">Cetak Kartu Anggota</h3><p class="text-sm text-slate-500">Cari anggota untuk mencetak kartu</p></div>
-                        </div>
-                        <div class="relative mb-4">
-                            <span class="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400">🔍</span>
-                            <input type="text" placeholder="Ketik nama atau ID..." class="input-field pl-10" value="${printSearch}" oninput="printSearch=this.value; render()">
-                        </div>
-                        <div class="space-y-2 max-h-[400px] overflow-y-auto custom-scrollbar pr-1">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 w-full">
+                        <h3 class="font-bold text-lg text-slate-800 mb-4 flex items-center gap-2"><span class="text-emerald-600">🆔</span> Cetak Kartu</h3>
+                        <input type="text" placeholder="Cari nama..." class="input-field mb-3 text-sm" value="${printSearch}" oninput="printSearch=this.value; render()">
+                        <div class="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar">
                             ${members.filter(m => m.name.toLowerCase().includes(printSearch.toLowerCase())).map(m => `
-                                <div class="flex items-center justify-between p-3 border border-slate-100 rounded-xl hover:bg-emerald-50 hover:border-emerald-200 transition group">
-                                    <div class="flex items-center gap-3">
-                                        <div class="w-10 h-10 bg-slate-100 rounded-full overflow-hidden border border-slate-200">
-                                            ${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-[10px] font-bold text-slate-400">${m.name[0]}</div>`}
-                                        </div>
-                                        <div>
-                                            <div class="font-bold text-sm text-slate-700">${m.name}</div>
-                                            <div class="text-[10px] text-slate-400 font-mono bg-slate-100 px-1 rounded inline-block">${m.id}</div>
-                                        </div>
-                                    </div>
-                                    <button onclick="printCardNew('${m.id}')" class="text-xs bg-white border border-emerald-200 text-emerald-600 px-3 py-2 rounded-lg font-bold shadow-sm hover:bg-emerald-600 hover:text-white transition">CETAK</button>
+                                <div class="flex items-center justify-between p-3 border rounded-xl">
+                                    <div class="text-sm font-bold text-slate-700 truncate max-w-[150px]">${m.name}</div>
+                                    <button onclick="printCardNew('${m.id}')" class="text-xs bg-emerald-100 text-emerald-700 px-3 py-1.5 rounded-lg font-bold">Cetak</button>
                                 </div>`).join('')}
                         </div>
                     </div>
@@ -464,52 +480,43 @@
             }
             else if(adminTab==='pengaturan' && isAdmin) {
                 content += `
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200">
-                        <div class="flex justify-between items-center mb-6 pb-4 border-b border-slate-100">
-                            <div><h3 class="font-bold text-lg text-slate-800">Manajemen Akses</h3><p class="text-sm text-slate-500">Kelola akun petugas</p></div>
-                            <button onclick="modalUser()" class="bg-slate-800 text-white px-4 py-2 rounded-xl font-bold text-xs hover:bg-slate-900 shadow">+ User Baru</button>
+                <div class="grid grid-cols-1 gap-4 w-full">
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 w-full">
+                        <div class="flex justify-between items-center mb-4">
+                            <h3 class="font-bold text-lg text-slate-800">Petugas</h3>
+                            <button onclick="modalUser()" class="bg-slate-800 text-white px-3 py-1.5 rounded-lg text-xs font-bold">+ Baru</button>
                         </div>
-                        <div class="space-y-3">
+                        <div class="space-y-2">
                             ${users.map(u => `
-                                <div class="flex items-center justify-between p-4 border rounded-xl bg-slate-50/50">
-                                    <div class="flex items-center gap-4">
-                                        <div class="w-10 h-10 ${u.role === 'admin' ? 'bg-emerald-100 text-emerald-600' : 'bg-blue-100 text-blue-600'} rounded-full flex items-center justify-center font-bold uppercase text-sm">${u.role.substring(0,2)}</div>
-                                        <div><div class="font-bold text-slate-800">${u.name}</div><div class="text-[10px] font-bold text-slate-400 uppercase tracking-wider">${u.role}</div></div>
-                                    </div>
-                                    <div class="flex items-center gap-2">
-                                        ${u.role !== 'admin' ? `
-                                            <button onclick="modalUser('${u.id}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-orange-500 hover:border-orange-500 transition">✎</button>
-                                            <button onclick="deleteUser('${u.id}')" class="w-8 h-8 flex items-center justify-center rounded-full bg-white border border-slate-200 text-red-500 hover:border-red-500 transition">✕</button>
-                                        ` : '<span class="text-[10px] font-bold text-slate-400 bg-slate-200 px-2 py-1 rounded">UTAMA</span>'}
-                                    </div>
+                                <div class="flex items-center justify-between p-3 border rounded-xl bg-slate-50">
+                                    <div><div class="font-bold text-sm">${u.name}</div><div class="text-[10px] uppercase text-slate-500">${u.role}</div></div>
+                                    ${u.role !== 'admin' ? `<button onclick="deleteUser('${u.id}')" class="text-red-500 font-bold px-2">✕</button>` : ''}
                                 </div>`).join('')}
                         </div>
                     </div>
-                    <div class="bg-white p-6 rounded-3xl shadow-sm border border-slate-200 h-fit">
-                        <h3 class="font-bold text-lg text-slate-800 mb-2">Reset Aplikasi</h3>
-                        <p class="text-sm text-slate-500 mb-4">Hapus semua data dan kembali ke pengaturan awal. Gunakan dengan hati-hati.</p>
-                        <button onclick="if(confirm('PERINGATAN: Semua data akan dihapus. Lanjutkan?')){localStorage.clear();location.reload();}" class="w-full border border-red-200 text-red-500 bg-red-50 hover:bg-red-600 hover:text-white py-3 rounded-xl font-bold transition">Reset Data ke Awal</button>
+                    <div class="bg-white p-5 rounded-2xl shadow-sm border border-slate-200 w-full">
+                        <h3 class="font-bold text-lg text-slate-800 mb-2">Reset</h3>
+                        <button onclick="requestReset()" class="w-full border border-red-200 text-red-500 bg-red-50 py-2 rounded-xl font-bold text-sm">Reset Aplikasi</button>
                     </div>
                 </div>`;
             }
 
-            content += `</div></div></div>`; 
+            content += `</div></div></div></div>`; 
             container.innerHTML = content;
         }
 
-        // --- COMPONENT HELPERS (Sama seperti sebelumnya) ---
+        // --- COMPONENT HELPERS ---
         function renderSidebar(id, label, iconPath) {
             const active = adminTab === id;
-            return `<button onclick="setTab('${id}')" class="w-full text-left px-4 py-3.5 rounded-xl transition-all flex items-center gap-3 ${active ? 'bg-emerald-600 text-white font-semibold shadow-lg shadow-emerald-900/20' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-400'}">
-                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"/></svg>
-                ${label}
+            return `<button onclick="setTab('${id}')" class="w-full text-left px-4 py-3 rounded-xl transition-all flex items-center gap-3 ${active ? 'bg-emerald-600 text-white font-semibold shadow-md' : 'text-slate-400 hover:bg-slate-800 hover:text-emerald-400'}">
+                <svg class="w-5 h-5 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="${iconPath}"/></svg>
+                <span class="truncate">${label}</span>
             </button>`;
         }
         function renderMTab(id) {
             let lbl = id === 'laporan' ? 'Laporan' : id.charAt(0).toUpperCase() + id.slice(1);
             const active = adminTab === id;
-            return `<button onclick="setTab('${id}')" class="px-4 py-2 rounded-full text-xs font-bold whitespace-nowrap transition-colors ${active ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-500 border border-slate-200'}">${lbl}</button>`;
+            return `<button onclick="setTab('${id}')" class="px-4 py-1.5 rounded-full text-[11px] font-bold whitespace-nowrap transition-colors ${active ? 'bg-emerald-600 text-white shadow' : 'bg-slate-100 text-slate-500 border border-slate-200'}">${lbl}</button>`;
         }
         function renderStat(l, v, c, icon) {
             const colors = {
@@ -518,82 +525,76 @@
                 orange: 'text-orange-600 bg-orange-50 border-orange-100',
                 emerald: 'text-emerald-600 bg-emerald-50 border-emerald-100'
             };
-            return `<div class="p-5 rounded-2xl border shadow-sm ${colors[c]} flex flex-col justify-between h-28 relative overflow-hidden group">
-                <div class="absolute right-0 top-0 p-4 opacity-10 text-6xl grayscale group-hover:grayscale-0 transition-all transform group-hover:scale-110 group-hover:rotate-12">${icon}</div>
-                <div class="text-3xl font-extrabold relative z-10">${v}</div>
-                <div class="text-xs font-bold uppercase tracking-wider opacity-70 relative z-10">${l}</div>
+            return `<div class="p-4 rounded-2xl border shadow-sm ${colors[c]} flex flex-col justify-between h-24 relative overflow-hidden w-full">
+                <div class="absolute right-0 top-0 p-2 opacity-10 text-5xl">${icon}</div>
+                <div class="text-2xl font-extrabold relative z-10">${v}</div>
+                <div class="text-[10px] font-bold uppercase tracking-wider opacity-70 relative z-10">${l}</div>
             </div>`;
         }
         function renderMemberCard(m) {
             const showEdit = canEdit(m);
             return `
-            <div class="bg-white p-5 rounded-2xl border border-slate-200 shadow-sm hover:shadow-lg transition-all relative group flex flex-col h-full">
-                <div class="flex items-center gap-4 mb-4">
-                    <div class="w-14 h-14 bg-slate-100 rounded-full overflow-hidden flex-shrink-0 border-2 border-white shadow-sm">
-                        ${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-slate-400 font-bold text-xl">${m.name[0]}</div>`}
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm relative w-full">
+                <div class="flex items-center gap-3 mb-3">
+                    <div class="w-10 h-10 bg-slate-100 rounded-full overflow-hidden border border-slate-200 flex-shrink-0">
+                        ${m.photo ? `<img src="${m.photo}" class="w-full h-full object-cover">` : `<div class="w-full h-full flex items-center justify-center text-slate-400 font-bold">${m.name[0]}</div>`}
                     </div>
-                    <div class="min-w-0 overflow-hidden">
-                        <h4 class="font-bold text-base text-slate-800 truncate">${m.name}</h4>
-                        <p class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1 uppercase tracking-wide">${m.type}</p>
+                    <div class="min-w-0 flex-1 overflow-hidden">
+                        <h4 class="font-bold text-sm text-slate-800 truncate">${m.name}</h4>
+                        <p class="text-[10px] font-bold text-slate-500 bg-slate-100 px-2 rounded inline-block uppercase">${m.type}</p>
                     </div>
                 </div>
-                <div class="text-xs text-slate-500 mb-4 space-y-1 flex-1">
-                    <div class="flex justify-between border-b border-dashed border-slate-100 pb-1"><span>ID</span> <span class="font-mono text-slate-700">${m.id}</span></div>
-                    <div class="flex justify-between pt-1"><span>Status</span> <span class="${m.active ? 'text-emerald-600' : 'text-red-500'} font-bold bg-${m.active ? 'emerald' : 'red'}-50 px-1.5 rounded">${m.active ? 'AKTIF' : 'NONAKTIF'}</span></div>
+                <div class="text-[11px] text-slate-500 mb-3 flex justify-between items-center">
+                    <span class="font-mono bg-slate-50 px-1 rounded">${m.id}</span> 
+                    <span class="${m.active?'text-emerald-600':'text-red-500'} font-bold text-[10px]">${m.active?'Aktif':'Non'}</span>
                 </div>
-                <div class="flex gap-2 pt-3 border-t border-slate-100 mt-auto">
-                    <button onclick="modalDetail('anggota','${m.id}')" class="flex-1 bg-blue-50 text-blue-600 py-2 rounded-lg text-xs font-bold hover:bg-blue-100 transition">Detail</button>
-                    ${showEdit ? `<button onclick="modalAnggota('${m.id}')" class="flex-1 bg-orange-50 text-orange-600 py-2 rounded-lg text-xs font-bold hover:bg-orange-100 transition">Edit</button>` : ''}
+                <div class="flex gap-2 pt-2 border-t border-slate-100">
+                    <button onclick="modalDetail('anggota','${m.id}')" class="flex-1 bg-blue-50 text-blue-600 py-1.5 rounded-lg text-[10px] font-bold hover:bg-blue-100 transition">Detail</button>
+                    ${showEdit ? `<button onclick="modalAnggota('${m.id}')" class="flex-1 bg-orange-50 text-orange-600 py-1.5 rounded-lg text-[10px] font-bold hover:bg-orange-100 transition">Edit</button>` : ''}
                 </div>
-                ${showEdit ? `<button onclick="deleteItem('m','${m.id}')" class="absolute top-4 right-4 text-slate-300 hover:text-red-500 transition font-bold">&times;</button>` : ''}
+                ${showEdit ? `<button onclick="deleteItem('m','${m.id}')" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 font-bold text-xs px-2">✕</button>` : ''}
             </div>`;
         }
         function renderBookCard(b) {
             const showEdit = canEdit(b);
             return `
-            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm hover:shadow-md transition flex flex-col h-full relative">
-                <div class="flex-1">
-                    <div class="flex justify-between items-start">
-                        <h4 class="font-bold text-base text-slate-800 line-clamp-2 leading-tight mb-1">${b.title}</h4>
-                    </div>
-                    <p class="text-xs text-slate-500 mb-3">${b.author}</p>
-                    <div class="flex flex-wrap gap-1 mb-3">
-                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium">${b.category}</span>
-                        <span class="text-[10px] bg-slate-100 text-slate-600 px-2 py-1 rounded font-medium">Rak: ${b.shelf}</span>
-                    </div>
+            <div class="bg-white p-4 rounded-2xl border border-slate-200 shadow-sm relative w-full">
+                <h4 class="font-bold text-sm text-slate-800 line-clamp-1 pr-5">${b.title}</h4>
+                <p class="text-[10px] text-slate-500 mb-2 line-clamp-1">${b.author || '-'}</p>
+                <div class="flex gap-1 mb-2">
+                    <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 truncate max-w-[80px]">${b.category}</span>
+                    <span class="text-[9px] bg-slate-100 px-1.5 py-0.5 rounded text-slate-600 whitespace-nowrap">Rak: ${b.shelf}</span>
                 </div>
-                <div class="flex justify-between items-center mt-auto pt-3 border-t border-slate-100">
-                    <span class="${b.stock > 0 ? 'text-emerald-700 bg-emerald-50' : 'text-red-700 bg-red-50'} px-2 py-1 rounded text-xs font-bold">Stok: ${b.stock}</span>
+                <div class="flex justify-between items-center pt-2 border-t border-slate-100">
+                    <span class="${b.stock>0?'text-emerald-700 bg-emerald-50':'text-red-700 bg-red-50'} px-2 py-0.5 rounded text-[10px] font-bold whitespace-nowrap">Stok: ${b.stock}</span>
                     <div class="flex gap-1">
-                        <button onclick="modalDetail('buku', ${b.id})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-blue-50 text-blue-600 hover:bg-blue-100">👁️</button>
-                        ${showEdit ? `<button onclick="modalBuku(${b.id})" class="w-8 h-8 flex items-center justify-center rounded-lg bg-orange-50 text-orange-600 hover:bg-orange-100">✎</button>` : ''}
+                        <button onclick="modalDetail('buku', ${b.id})" class="px-2 py-1 rounded-md bg-blue-50 text-blue-600 text-[10px] font-bold hover:bg-blue-100">Lihat</button>
+                        ${showEdit ? `<button onclick="modalBuku(${b.id})" class="px-2 py-1 rounded-md bg-orange-50 text-orange-600 text-[10px] font-bold hover:bg-orange-100">Edit</button>` : ''}
                     </div>
                 </div>
-                ${showEdit ? `<button onclick="deleteItem('b',${b.id})" class="absolute top-2 right-2 w-6 h-6 flex items-center justify-center text-slate-300 hover:text-red-500 hover:bg-red-50 rounded transition">&times;</button>` : ''}
+                ${showEdit ? `<button onclick="deleteItem('b',${b.id})" class="absolute top-2 right-2 text-slate-300 hover:text-red-500 font-bold text-xs px-2">✕</button>` : ''}
             </div>`;
         }
         function renderLoanCard(l) {
             const showEdit = canEdit(l);
             return `
-            <div class="bg-white p-4 rounded-2xl border-l-4 ${l.status === 'Dipinjam' ? 'border-orange-400' : 'border-emerald-400'} shadow-sm hover:shadow-md transition relative flex justify-between items-center">
-                <div>
-                    <div class="text-xs text-slate-400 font-mono mb-1">#${l.id} • ${l.date}</div>
-                    <h4 class="font-bold text-slate-800">${l.bookTitle}</h4>
-                    <p class="text-sm text-slate-600 mt-0.5">Peminjam: <span class="font-semibold text-emerald-700">${l.memberName}</span></p>
+            <div class="bg-white p-4 rounded-2xl border-l-4 ${l.status === 'Dipinjam' ? 'border-orange-400' : 'border-emerald-400'} shadow-sm relative w-full">
+                <div class="flex justify-between items-start mb-1">
+                    <div class="text-[10px] text-slate-400">${l.date}</div>
+                    <span class="px-2 py-0.5 rounded text-[9px] font-bold uppercase ${l.status==='Dipinjam'?'bg-orange-50 text-orange-600':'bg-emerald-50 text-emerald-600'}">${l.status}</span>
                 </div>
-                <div class="flex flex-col items-end gap-2">
-                    <span class="px-2.5 py-1 rounded-md text-[10px] font-bold uppercase tracking-wide ${l.status === 'Dipinjam' ? 'bg-orange-50 text-orange-600 ring-1 ring-orange-200' : 'bg-emerald-50 text-emerald-600 ring-1 ring-emerald-200'}">${l.status}</span>
-                    <div class="flex gap-2 mt-1">
-                        <button onclick="printDetail(${l.id})" class="text-xs text-slate-500 bg-slate-100 hover:bg-slate-200 px-2 py-1 rounded font-bold">Struk</button>
-                        ${l.status === 'Dipinjam' && showEdit ? `<button onclick="kembalikanBuku(${l.id})" class="bg-emerald-600 text-white px-3 py-1 rounded-lg text-xs font-bold shadow hover:bg-emerald-700">Kembali</button>` : ''}
-                    </div>
+                <h4 class="font-bold text-sm text-slate-800 line-clamp-1 pr-2">${l.bookTitle}</h4>
+                <p class="text-[11px] text-slate-600 line-clamp-1">Peminjam: <b>${l.memberName}</b></p>
+                <div class="flex gap-2 mt-3 justify-end border-t border-slate-50 pt-2">
+                    <button onclick="printDetail(${l.id})" class="text-[10px] text-slate-500 bg-slate-100 px-3 py-1.5 rounded-lg font-bold hover:bg-slate-200 transition">Struk</button>
+                    ${l.status === 'Dipinjam' && showEdit ? `<button onclick="kembalikanBuku(${l.id})" class="bg-emerald-600 text-white px-3 py-1.5 rounded-lg text-[10px] font-bold shadow hover:bg-emerald-700 transition">Kembali</button>` : ''}
                 </div>
             </div>`;
         }
 
         /**
          * ------------------------------------------------------------------
-         * MODAL & FORM HANDLERS (Sama seperti sebelumnya)
+         * MODAL & FORM HANDLERS
          * ------------------------------------------------------------------
          */
         const overlay = document.getElementById('modalOverlay');
@@ -606,17 +607,18 @@
         function openLoginModal() {
             openModal('Masuk Panel Admin', `
                 <form onsubmit="processLogin(event)" class="space-y-4 pt-2">
-                    <div><label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Username</label><input name="u" required class="input-field mt-1" placeholder="Username (Default: admin)"></div>
-                    <div><label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Password</label><input type="password" name="p" required class="input-field mt-1" placeholder="Password (Default: admin)"></div>
+                    <div><label class="text-[11px] font-bold text-slate-400 uppercase">Username</label><input name="u" required class="input-field mt-1" placeholder="admin" autocapitalize="off" autocomplete="off"></div>
+                    <div><label class="text-[11px] font-bold text-slate-400 uppercase">Password</label><input type="password" name="p" required class="input-field mt-1" placeholder="admin"></div>
                     <div class="pt-2">
-                        <button class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-lg shadow-emerald-500/30 transition">MASUK APLIKASI</button>
-                        <button type="button" onclick="closeModal()" class="w-full mt-2 text-slate-400 text-sm py-2 hover:text-slate-600">Batal</button>
+                        <button class="w-full bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-lg transition">MASUK</button>
+                        <div class="flex justify-between mt-3">
+                            <button type="button" onclick="closeModal()" class="text-slate-400 text-xs">Batal</button>
+                            <button type="button" onclick="requestReset()" class="text-red-400 text-xs font-bold">Reset Data</button>
+                        </div>
                     </div>
                 </form>`);
         }
         function processLogin(e) { e.preventDefault(); login(e.target.u.value, e.target.p.value); }
-
-        // ... (Fungsi modalUser, saveUser, deleteUser, modalAnggota, handleMemberSubmit, modalBuku, handleBookSubmit, modalPinjam, handleLoanSubmit SAMA SEPERTI SEBELUMNYA) ...
         
         // MANAGE USER
         function modalUser(id = null) {
@@ -624,11 +626,11 @@
             editUserId = id;
             openModal(id ? 'Edit Petugas' : 'Tambah Petugas', `
                 <form onsubmit="saveUser(event)" class="space-y-4">
-                    <div><label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Nama Petugas</label><input name="name" value="${u.name || ''}" required class="input-field mt-1"></div>
-                    <div><label class="text-[11px] font-bold text-slate-400 uppercase tracking-wide">Password</label><input type="text" name="password" value="${u.password || ''}" required class="input-field mt-1"></div>
+                    <div><label class="text-[11px] font-bold text-slate-400 uppercase">Nama Petugas</label><input name="name" value="${u.name || ''}" required class="input-field mt-1" autocapitalize="off"></div>
+                    <div><label class="text-[11px] font-bold text-slate-400 uppercase">Password</label><input type="text" name="password" value="${u.password || ''}" required class="input-field mt-1"></div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Batal</button>
-                        <button class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-lg">Simpan</button>
+                        <button class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-lg">Simpan</button>
                     </div>
                 </form>`);
         }
@@ -639,8 +641,15 @@
             if(editUserId) users = users.map(u => u.id === editUserId ? { ...u, name: n, password: p } : u);
             else users.push({ id: 'petugas_' + Date.now(), name: n, role: 'petugas', password: p, active: true });
             saveData(); closeModal();
+            showToast('Data petugas tersimpan!', 'success');
         }
-        function deleteUser(id) { if(confirm('Hapus akses petugas ini?')) { users = users.filter(x => x.id !== id); saveData(); } }
+        function deleteUser(id) { 
+            confirmAction('Hapus petugas ini?', () => {
+                users = users.filter(x => x.id !== id); 
+                saveData();
+                showToast('Petugas dihapus.', 'info');
+            });
+        }
 
         // ANGGOTA
         function modalAnggota(id = null) {
@@ -652,32 +661,30 @@
             openModal(id ? 'Edit Anggota' : 'Tambah Anggota', `
                 <form onsubmit="handleMemberSubmit(event)" class="space-y-3">
                     <div class="flex justify-center mb-2">
-                        <label class="w-24 h-24 bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-300 hover:border-emerald-500 cursor-pointer overflow-hidden relative transition group">
+                        <label class="w-20 h-20 bg-slate-50 rounded-full flex items-center justify-center border-2 border-dashed border-slate-300 cursor-pointer overflow-hidden relative">
                             <img id="preview" src="${photoPreview || ''}" class="${photoPreview ? '' : 'hidden'} w-full h-full object-cover absolute">
-                            <div class="text-center z-10 ${photoPreview ? 'hidden group-hover:block bg-black/50 w-full h-full flex items-center justify-center' : ''}">
-                                <span class="text-xs text-slate-400 group-hover:text-white font-bold">📷 Foto</span>
-                            </div>
+                            <span class="text-[10px] text-slate-400 font-bold">📷 Foto</span>
                             <input type="file" class="hidden" onchange="handlePhoto(this)" accept="image/*">
                         </label>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">ID (Oto)</label><input name="mid" value="${newID}" readonly class="input-field bg-slate-100 text-center font-mono font-bold text-slate-500"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">NIK</label><input name="nik" value="${d.nik || ''}" placeholder="NIK KTP/Kartu Pelajar" class="input-field"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">ID</label><input name="mid" value="${newID}" readonly class="input-field bg-slate-100 text-center font-mono font-bold text-slate-500"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">NIK</label><input name="nik" value="${d.nik || ''}" placeholder="NIK" class="input-field"></div>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nama Lengkap</label><input name="name" value="${d.name || ''}" required class="input-field"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nama</label><input name="name" value="${d.name || ''}" required class="input-field"></div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tempat Lahir</label><input name="bPlace" value="${d.birthPlace || ''}" class="input-field"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Lahir di</label><input name="bPlace" value="${d.birthPlace || ''}" class="input-field"></div>
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tgl Lahir</label><input name="bDate" type="date" value="${d.birthDate || ''}" class="input-field"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Gender</label><select name="gender" class="input-field"><option value="L" ${d.gender=='L'?'selected':''}>Laki-laki</option><option value="P" ${d.gender=='P'?'selected':''}>Perempuan</option></select></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tipe</label><select name="type" class="input-field"><option ${d.type === 'Umum' ? 'selected' : ''}>Umum</option><option ${d.type === 'Pelajar' ? 'selected' : ''}>Pelajar</option></select></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Gender</label><select name="gender" class="input-field"><option value="L">Laki-laki</option><option value="P">Perempuan</option></select></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tipe</label><select name="type" class="input-field"><option>Umum</option><option>Pelajar</option></select></div>
                     </div>
                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">No HP</label><input name="phone" value="${d.phone || ''}" class="input-field"></div>
                     <div><label class="text-[10px] font-bold text-slate-400 uppercase">Alamat</label><textarea name="addr" rows="2" class="input-field">${d.address || ''}</textarea></div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Batal</button>
-                        <button class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-lg">Simpan Data</button>
+                        <button class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-lg">Simpan</button>
                     </div>
                 </form>`);
         }
@@ -695,6 +702,7 @@
             if(editId) members = members.map(m => m.id === editId ? { ...m, ...d } : m);
             else members.push(d);
             saveData(); closeModal();
+            showToast('Data anggota disimpan!', 'success');
         }
 
         // BUKU
@@ -703,17 +711,19 @@
             editId = id;
             openModal(id ? 'Edit Buku' : 'Tambah Buku', `
                 <form onsubmit="handleBookSubmit(event)" class="space-y-3">
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Judul Buku</label><input name="title" value="${d.title || ''}" required class="input-field"></div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">ISBN</label><input name="isbn" value="${d.isbn || ''}" class="input-field"></div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Penulis</label><input name="author" value="${d.author || ''}" class="input-field"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Judul</label><input name="title" value="${d.title || ''}" required class="input-field"></div>
+                    <div class="grid grid-cols-2 gap-3">
+                         <div><label class="text-[10px] font-bold text-slate-400 uppercase">ISBN</label><input name="isbn" value="${d.isbn || ''}" class="input-field"></div>
+                         <div><label class="text-[10px] font-bold text-slate-400 uppercase">Penulis</label><input name="author" value="${d.author || ''}" class="input-field"></div>
+                    </div>
                     <div class="grid grid-cols-2 gap-2">
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase">Kategori</label><input name="category" value="${d.category || ''}" class="input-field" list="catList"><datalist id="catList"><option value="Novel"><option value="Sastra"><option value="Pelajaran"><option value="Komik"></datalist></div>
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase">Stok</label><input name="stock" type="number" value="${d.stock || ''}" class="input-field"></div>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Lokasi Rak</label><input name="shelf" value="${d.shelf || ''}" class="input-field"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Rak</label><input name="shelf" value="${d.shelf || ''}" class="input-field"></div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Batal</button>
-                        <button class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold hover:bg-emerald-700 shadow-lg">Simpan Buku</button>
+                        <button class="flex-1 bg-emerald-600 text-white py-3 rounded-xl font-bold shadow-lg">Simpan</button>
                     </div>
                 </form>`);
         }
@@ -729,30 +739,31 @@
             if(editId) books = books.map(b => b.id === editId ? d : b);
             else books.push(d);
             saveData(); closeModal();
+            showToast('Data buku disimpan!', 'success');
         }
 
         // PINJAM
         function modalPinjam() {
-            const opts = members.filter(m => m.active).map(m => `<option value="${m.id}">${m.name} (${m.id})</option>`).join('');
+            const opts = members.filter(m => m.active).map(m => `<option value="${m.id}">${m.name}</option>`).join('');
             const bopts = books.filter(b => b.stock > 0).map(b => `<option value="${b.id}">${b.title}</option>`).join('');
             
-            if(!bopts) return alert("Tidak ada buku yang tersedia (Stok Habis).");
-            if(!opts) return alert("Tidak ada anggota aktif.");
+            if(!bopts) return showToast("Stok buku habis semua.", 'error');
+            if(!opts) return showToast("Tidak ada anggota aktif.", 'error');
 
             openModal('Transaksi Peminjaman', `
                 <form onsubmit="handleLoanSubmit(event)" class="space-y-4">
                     <div class="grid grid-cols-1 gap-3">
                         <div><label class="text-[10px] font-bold text-slate-400 uppercase">Peminjam</label><select name="mid" class="input-field">${opts}</select></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Buku (Yang tersedia)</label><select name="bid" class="input-field">${bopts}</select></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Buku</label><select name="bid" class="input-field">${bopts}</select></div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Tgl Pinjam</label><input name="d" type="date" value="${new Date().toISOString().slice(0, 10)}" class="input-field"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Rencana Kembali</label><input name="r" type="date" class="input-field" required></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Pinjam</label><input name="d" type="date" value="${new Date().toISOString().slice(0, 10)}" class="input-field"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Kembali</label><input name="r" type="date" class="input-field" required></div>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Kondisi Awal</label><select name="cond" class="input-field"><option>Baik</option><option>Rusak Ringan</option></select></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Kondisi</label><select name="cond" class="input-field"><option>Baik</option><option>Rusak</option></select></div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Batal</button>
-                        <button class="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold hover:bg-orange-600 shadow-lg">Proses Pinjam</button>
+                        <button class="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold shadow-lg">Proses</button>
                     </div>
                 </form>`);
         }
@@ -762,9 +773,9 @@
             const m = members.find(x => x.id == f.mid.value);
             const b = books.find(x => x.id == f.bid.value);
             
-            if(b.stock <= 0) return alert("Stok buku habis!");
+            if(b.stock <= 0) return showToast("Stok Habis!", 'error');
 
-            b.stock--; // Kurangi stok
+            b.stock--; 
             loans.push({
                 id: Date.now(), memberId: m.id, memberName: m.name,
                 bookTitle: b.title, bookId: b.id, status: 'Dipinjam',
@@ -772,25 +783,26 @@
                 createdBy: currentUser ? currentUser.id : 'admin'
             });
             saveData(); closeModal();
+            showToast('Peminjaman berhasil!', 'success');
         }
 
         // BUKU TAMU
         function openVisitorForm() {
-            openModal('Buku Tamu - TBM Anak Bangsa', `
+            openModal('Buku Tamu', `
                 <form onsubmit="handleVisitorSubmit(event)" class="space-y-4">
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Nama Lengkap</label><input id="vName" required class="input-field mt-1" placeholder="Nama Anda"></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Nama</label><input id="vName" required class="input-field mt-1"></div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Pekerjaan</label><input id="vJob" class="input-field mt-1" placeholder="Pekerjaan Anda"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">No. HP (Opsional)</label><input id="vPhone" type="number" class="input-field mt-1"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Pekerjaan</label><input id="vJob" class="input-field mt-1"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">HP</label><input id="vPhone" type="number" class="input-field mt-1"></div>
                     </div>
                     <div class="grid grid-cols-2 gap-3">
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Asal Instansi/Kota</label><input id="vOrigin" class="input-field mt-1"></div>
-                        <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Keperluan</label><select id="vPurpose" class="input-field mt-1"><option>Baca Buku</option><option>Pinjam Buku</option><option>Kerja Tugas</option><option>Rekreasi</option><option>Lainnya</option></select></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Asal</label><input id="vOrigin" class="input-field mt-1"></div>
+                        <div><label class="text-[10px] font-bold text-slate-400 uppercase">Keperluan</label><select id="vPurpose" class="input-field mt-1"><option>Baca</option><option>Pinjam</option><option>Tugas</option><option>Lainnya</option></select></div>
                     </div>
-                    <div><label class="text-[10px] font-bold text-slate-400 uppercase ml-1">Alamat Lengkap</label><textarea id="vAddr" rows="2" class="input-field mt-1"></textarea></div>
+                    <div><label class="text-[10px] font-bold text-slate-400 uppercase">Alamat</label><textarea id="vAddr" rows="2" class="input-field mt-1"></textarea></div>
                     <div class="flex gap-3 pt-2">
                         <button type="button" onclick="closeModal()" class="flex-1 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Batal</button>
-                        <button class="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold shadow-lg hover:bg-orange-600">Check In</button>
+                        <button class="flex-1 bg-orange-500 text-white py-3 rounded-xl font-bold shadow-lg">Check In</button>
                     </div>
                 </form>`);
         }
@@ -805,7 +817,7 @@
                 purpose: document.getElementById('vPurpose').value,
                 address: document.getElementById('vAddr').value || '-'
             });
-            saveData(); closeModal(); alert("Terima kasih! Kunjungan Anda telah tercatat.");
+            saveData(); closeModal(); showToast("Berhasil Check-in!", 'success');
         }
 
         // --- KATALOG ---
@@ -814,20 +826,18 @@
             const f = books.filter(b => b.title.toLowerCase().includes(catalogSearch.toLowerCase()) || b.author.toLowerCase().includes(catalogSearch.toLowerCase()));
             const h = `
                 <div class="sticky top-0 bg-white pb-2 z-10">
-                    <input placeholder="Cari judul atau pengarang..." class="input-field mb-2" oninput="catalogSearch=this.value;renderCatalogModal()" value="${catalogSearch}" autoFocus>
+                    <input placeholder="Cari buku..." class="input-field mb-2" oninput="catalogSearch=this.value;renderCatalogModal()" value="${catalogSearch}" autoFocus>
                 </div>
                 <div class="space-y-2 max-h-[300px] overflow-y-auto custom-scrollbar pr-2">
                     ${f.length ? f.map(b => `
-                        <div class="border border-slate-100 p-3 rounded-xl flex justify-between text-sm hover:bg-slate-50 transition">
+                        <div class="border border-slate-100 p-3 rounded-xl flex justify-between text-sm">
                             <div>
-                                <div class="font-bold text-slate-800 text-base">${b.title}</div>
-                                <div class="text-xs text-slate-500">${b.author}</div>
-                                <div class="text-[10px] text-slate-400 bg-slate-100 px-2 py-0.5 rounded inline-block mt-1 border border-slate-200">${b.category} • Rak <b>${b.shelf}</b></div>
+                                <div class="font-bold text-slate-800">${b.title}</div>
+                                <div class="text-xs text-slate-500">${b.author || '-'}</div>
+                                <div class="text-[10px] text-slate-400 bg-slate-100 px-2 rounded inline-block mt-1">Rak ${b.shelf}</div>
                             </div>
-                            <div class="flex flex-col items-end justify-center">
-                                <span class="${b.stock > 0 ? 'text-green-600 bg-green-50 border-green-100' : 'text-red-600 bg-red-50 border-red-100'} border font-bold px-2 py-1 rounded text-xs">${b.stock > 0 ? 'Ada' : 'Habis'}</span>
-                            </div>
-                        </div>`).join('') : '<div class="text-center text-slate-400 mt-4 py-4 bg-slate-50 rounded-xl">Buku tidak ditemukan.</div>'}
+                            <span class="${b.stock > 0 ? 'text-green-600 bg-green-50' : 'text-red-600 bg-red-50'} font-bold px-2 py-1 rounded text-xs h-fit">${b.stock > 0 ? 'Ada' : 'Habis'}</span>
+                        </div>`).join('') : '<div class="text-center text-slate-400 mt-4 text-sm">Tidak ditemukan.</div>'}
                 </div>
                 <button onclick="closeModal()" class="w-full mt-4 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold">Tutup</button>`;
             
@@ -838,7 +848,7 @@
                 inp.focus(); 
                 inp.setSelectionRange(inp.value.length, inp.value.length);
             } else {
-                openModal('Katalog TBM Anak Bangsa', `<div id="catalogList" class="w-full">${h}</div>`);
+                openModal('Katalog Buku', `<div id="catalogList" class="w-full">${h}</div>`);
             }
         }
 
@@ -856,52 +866,48 @@
             }
         }
         function kembalikanBuku(id) {
-            if(confirm('Konfirmasi pengembalian buku? Stok akan bertambah otomatis.')) {
+            confirmAction('Buku sudah dikembalikan?', () => {
                 const l = loans.find(x => x.id == id);
                 l.status = 'Dikembalikan';
                 const b = books.find(x => x.id == l.bookId);
                 if(b) b.stock++;
                 saveData();
-            }
+                showToast('Buku dikembalikan.', 'success');
+            });
         }
         function deleteItem(type, id) {
             const item = (type === 'm' ? members : books).find(i => i.id === id);
-            if(!canEdit(item)) return alert("Akses Ditolak: Hanya Admin atau pembuat data yang bisa menghapus.");
-            if(confirm('Yakin ingin menghapus data ini secara permanen?')) {
+            if(!canEdit(item)) return showToast("Akses ditolak. Hanya pembuat data atau admin.", 'error');
+            
+            confirmAction('Hapus data ini secara permanen?', () => {
                 if(type == 'm') members = members.filter(m => m.id !== id);
                 else books = books.filter(b => b.id !== id);
                 saveData();
-            }
+                showToast('Data dihapus.', 'info');
+            });
         }
         function modalDetail(type, id) {
             const d = (type === 'anggota' ? members.find(x => x.id === id) : type === 'buku' ? books.find(x => x.id === id) : loans.find(x => x.id === id));
-            const labels = {
-                id: "ID Sistem", title: "Judul Buku", author: "Penulis", isbn: "No. ISBN", category: "Kategori", stock: "Sisa Stok", shelf: "Lokasi Rak",
-                name: "Nama Lengkap", nik: "NIK/NIS", type: "Keanggotaan", gender: "Jenis Kelamin", birthPlace: "Tempat Lahir", birthDate: "Tanggal Lahir", phone: "Nomor HP", address: "Alamat Rumah", joinDate: "Bergabung Sejak", active: "Status Akun",
-                memberId: "ID Peminjam", memberName: "Nama Peminjam", bookTitle: "Buku", status: "Status Pinjam", date: "Tanggal Pinjam", returnDate: "Tgl Wajib Kembali", cond: "Kondisi Awal"
-            };
-
-            const content = `<div class="space-y-3 text-sm">
-                ${d.photo ? `<div class="flex justify-center mb-4"><img src="${d.photo}" class="w-32 h-32 object-cover rounded-full border-4 border-slate-100 shadow-sm"></div>` : ''}
-                ${Object.entries(d).filter(([k]) => k !== 'photo' && k !== 'createdBy').map(([k, v]) => `
-                    <div class="flex justify-between items-center border-b border-slate-50 pb-2">
-                        <span class="text-slate-400 text-xs uppercase font-bold tracking-wide">${labels[k] || k}</span>
-                        <span class="font-bold text-slate-700 text-right max-w-[60%] break-words">${v === true ? 'Aktif' : v === false ? 'Nonaktif' : v}</span>
-                    </div>
-                `).join('')}
-                <button onclick="closeModal()" class="w-full mt-4 bg-slate-100 text-slate-600 py-3 rounded-xl font-bold">Tutup</button>
-            </div>`;
             
-            openModal('Detail Data', content);
+            // Simple Key-Value Display
+            const keys = Object.keys(d).filter(k => k!=='photo' && k!=='createdBy');
+            const content = `<div class="space-y-2 text-sm">
+                ${d.photo ? `<div class="flex justify-center mb-3"><img src="${d.photo}" class="w-24 h-24 object-cover rounded-full border"></div>` : ''}
+                ${keys.map(k => `
+                    <div class="flex justify-between border-b border-slate-50 pb-1">
+                        <span class="text-slate-400 capitalize text-xs">${k}</span>
+                        <span class="font-bold text-slate-700 text-right max-w-[60%] truncate">${d[k]}</span>
+                    </div>`).join('')}
+                <button onclick="closeModal()" class="w-full mt-4 bg-slate-100 text-slate-600 py-2 rounded-xl font-bold">Tutup</button>
+            </div>`;
+            openModal('Detail', content);
         }
 
-        // --- PRINTING SYSTEM UPDATED ---
+        // --- PRINTING SYSTEM ---
         function printToArea(html) {
             const a = document.getElementById('printArea');
             a.innerHTML = html;
-            setTimeout(() => {
-                window.print();
-            }, 500); 
+            setTimeout(() => { window.print(); }, 500); 
         }
 
         function printCardNew(id) {
@@ -909,28 +915,21 @@
             printToArea(`
                 <div style="width:85.6mm;height:53.98mm;border:1px solid #000;border-radius:8px;overflow:hidden;position:relative;font-family:sans-serif;background:white;-webkit-print-color-adjust:exact;">
                     <div style="background:linear-gradient(135deg,#059669,#047857);height:15mm;display:flex;align-items:center;padding:0 5mm;color:white;">
-                        <div style="font-size:24px;margin-right:3mm;">📚</div>
+                        <div style="font-size:20px;margin-right:3mm;">📚</div>
                         <div>
-                            <div style="font-weight:800;font-size:14px;line-height:1;">TBM Anak Bangsa</div>
-                            <div style="font-size:8px;opacity:0.9;">Kabupaten Kepulauan Anambas</div>
+                            <div style="font-weight:800;font-size:12px;line-height:1;">TBM Anak Bangsa</div>
+                            <div style="font-size:8px;opacity:0.9;">Kab. Kepulauan Anambas</div>
                         </div>
                     </div>
                     <div style="padding:4mm;display:flex;gap:4mm;">
-                        <div style="width:22mm;height:28mm;background:#f0f0f0;border:1px solid #ddd;overflow:hidden;">
-                             ${m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">` : '<div style="display:flex;align-items:center;justify-content:center;height:100%;font-size:30px;color:#ccc;">👤</div>'}
+                        <div style="width:22mm;height:26mm;background:#f0f0f0;border:1px solid #ddd;overflow:hidden;">
+                             ${m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">` : ''}
                         </div>
                         <div style="font-size:10px;line-height:1.4;flex:1;">
-                            <div style="font-size:14px;font-weight:bold;color:#333;margin-bottom:2px;text-transform:uppercase;">${m.name}</div>
+                            <div style="font-size:12px;font-weight:bold;color:#333;margin-bottom:2px;text-transform:uppercase;">${m.name}</div>
                             <div style="font-family:monospace;background:#eee;display:inline-block;padding:1px 4px;border-radius:3px;margin-bottom:4px;font-weight:bold;">${m.id}</div>
-                            <div style="color:#555;font-size:9px;">
-                                <div>Tipe: ${m.type}</div>
-                                <div>${m.address.substring(0, 40)}${m.address.length>40?'...':''}</div>
-                            </div>
+                            <div style="color:#555;font-size:8px;">${m.address}</div>
                         </div>
-                    </div>
-                    <div style="position:absolute;bottom:2mm;right:4mm;font-size:7px;color:#888;text-align:right;">
-                        <div>Berlaku selama menjadi anggota</div>
-                        <div>TBM Anak Bangsa</div>
                     </div>
                 </div>
             `);
@@ -939,31 +938,15 @@
         function printDetail(id) {
             const l = loans.find(x => x.id === id);
             printToArea(`
-                <div style="width:76mm;padding:5px;font-family:'Courier New', monospace;font-size:12px;color:black;">
-                    <center>
-                        <b style="font-size:16px">TBM Anak Bangsa</b><br>
-                        Kab. Kepulauan Anambas<br>
-                        --------------------------------
-                    </center>
-                    <table style="width:100%; font-size:12px;">
-                        <tr><td>Tgl</td><td>: ${l.date}</td></tr>
-                        <tr><td>ID Trx</td><td>: #${l.id}</td></tr>
-                        <tr><td>Nama</td><td>: ${l.memberName.substring(0,15)}</td></tr>
-                    </table>
-                    --------------------------------
-                    <div style="margin:5px 0;font-weight:bold;">
-                        ${l.bookTitle}
-                    </div>
-                    <div style="font-size:11px;">
-                        Kode Buku: ${l.bookId}<br>
-                        Status: ${l.status.toUpperCase()}
-                    </div>
-                    --------------------------------
-                    <div style="text-align:center;margin-top:10px;">
-                        Wajib Kembali: <b>${l.returnDate}</b>
-                        <br><br>
-                        ~ Simpan struk ini ~
-                    </div>
+                <div style="width:76mm;padding:5px;font-family:'Courier New', monospace;font-size:12px;">
+                    <center><b>TBM Anak Bangsa</b><br>Anambas<br>----------------</center>
+                    <br>
+                    Tgl: ${l.date}<br>
+                    Nama: ${l.memberName}<br>
+                    Buku: ${l.bookTitle}<br>
+                    Status: ${l.status}<br>
+                    <br>
+                    <center>Kembali: ${l.returnDate}</center>
                 </div>
             `);
         }
@@ -975,37 +958,37 @@
             if (type === 'visitor') {
                 l = visitors; if (s && e) l = l.filter(i => i.date >= s && i.date <= e);
                 t = 'LAPORAN PENGUNJUNG';
-                h = '<th>No</th><th>Tanggal</th><th>Nama Lengkap</th><th>Pekerjaan</th><th>Keperluan</th>';
-                r = l.map((v, i) => `<tr><td style="text-align:center">${i + 1}</td><td>${v.date}</td><td>${v.name}</td><td>${v.job || v.category}</td><td>${v.purpose}</td></tr>`).join('');
+                h = '<th>No</th><th>Tanggal</th><th>Nama</th><th>Pekerjaan</th><th>Keperluan</th>';
+                r = l.map((v, i) => `<tr><td align="center">${i + 1}</td><td>${v.date}</td><td>${v.name}</td><td>${v.job || '-'}</td><td>${v.purpose}</td></tr>`).join('');
             } else if (type === 'peminjaman') {
                 l = loans; if (s && e) l = l.filter(i => i.date >= s && i.date <= e);
                 t = 'LAPORAN SIRKULASI';
-                h = '<th>No</th><th>Tgl Pinjam</th><th>Tgl Kembali</th><th>Peminjam</th><th>Judul Buku</th><th>Status</th>';
-                r = l.map((x, i) => `<tr><td style="text-align:center">${i + 1}</td><td>${x.date}</td><td>${x.returnDate}</td><td>${x.memberName}</td><td>${x.bookTitle}</td><td style="text-align:center">${x.status}</td></tr>`).join('');
+                h = '<th>No</th><th>Tgl</th><th>Kembali</th><th>Nama</th><th>Buku</th><th>Status</th>';
+                r = l.map((x, i) => `<tr><td align="center">${i + 1}</td><td>${x.date}</td><td>${x.returnDate}</td><td>${x.memberName}</td><td>${x.bookTitle}</td><td align="center">${x.status}</td></tr>`).join('');
             } else if (type === 'anggota') {
                 l = members;
-                t = 'DATA INDUK ANGGOTA';
-                h = '<th>No</th><th>ID Anggota</th><th>Nama Lengkap</th><th>TTL</th><th>Alamat</th><th>Tipe</th>';
-                r = l.map((m, i) => `<tr><td style="text-align:center">${i + 1}</td><td>${m.id}</td><td>${m.name}</td><td>${m.birthPlace}, ${m.birthDate}</td><td>${m.address}</td><td>${m.type}</td></tr>`).join('');
+                t = 'DATA ANGGOTA';
+                h = '<th>No</th><th>ID</th><th>Nama</th><th>TTL</th><th>Alamat</th>';
+                r = l.map((m, i) => `<tr><td align="center">${i + 1}</td><td>${m.id}</td><td>${m.name}</td><td>${m.birthPlace}, ${m.birthDate}</td><td>${m.address}</td></tr>`).join('');
             } else if (type === 'buku') {
                 l = books;
-                t = 'LAPORAN STOK BUKU';
-                h = '<th>No</th><th>ISBN</th><th>Judul Buku</th><th>Penulis</th><th>Rak</th><th>Stok</th>';
-                r = l.map((b, i) => `<tr><td style="text-align:center">${i + 1}</td><td>${b.isbn}</td><td>${b.title}</td><td>${b.author}</td><td style="text-align:center">${b.shelf}</td><td style="text-align:center">${b.stock}</td></tr>`).join('');
+                t = 'STOK BUKU';
+                h = '<th>No</th><th>ISBN</th><th>Judul</th><th>Penulis</th><th>Rak</th><th>Stok</th>';
+                r = l.map((b, i) => `<tr><td align="center">${i + 1}</td><td>${b.isbn||'-'}</td><td>${b.title}</td><td>${b.author||'-'}</td><td align="center">${b.shelf}</td><td align="center">${b.stock}</td></tr>`).join('');
             }
 
             printToArea(`
-                <div style="font-family:sans-serif; color:#000; padding:20px;">
-                    <h2 style="text-align:center;margin-bottom:5px;text-transform:uppercase;">TBM Anak Bangsa</h2>
-                    <p style="text-align:center;margin-top:0;font-size:12px;margin-bottom:15px;">Kabupaten Kepulauan Anambas</p>
-                    <h4 style="text-align:center;margin-top:0;text-decoration:underline;margin-bottom:20px;">${t}</h4>
-                    ${s ? `<p style="text-align:center;font-size:12px;margin-bottom:10px;">Periode Laporan: ${s} s/d ${e}</p>` : ''}
-                    <table border="1" cellpadding="8" cellspacing="0" style="width:100%;border-collapse:collapse;font-size:12px;">
-                        <thead><tr style="background:#f3f3f3;">${h}</tr></thead>
+                <div style="font-family:sans-serif; padding:20px;">
+                    <h3 style="text-align:center;margin-bottom:5px;">TBM Anak Bangsa</h3>
+                    <p style="text-align:center;margin-top:0;font-size:12px;">Kabupaten Kepulauan Anambas</p>
+                    <h4 style="text-align:center;text-decoration:underline;margin:20px 0;">${t}</h4>
+                    ${s ? `<p style="text-align:center;font-size:11px;">Periode: ${s} s/d ${e}</p>` : ''}
+                    <table border="1" cellspacing="0" cellpadding="5" style="width:100%;border-collapse:collapse;font-size:11px;">
+                        <thead><tr style="background:#eee;">${h}</tr></thead>
                         <tbody>${r}</tbody>
                     </table>
-                    <div style="margin-top:40px;text-align:right;font-size:12px;">
-                        <p>Dicetak pada: ${now}<br><br><br><br>( Pengelola TBM )</p>
+                    <div style="margin-top:30px;text-align:right;font-size:11px;">
+                        <p>Anambas, ${now}<br><br><br>( Pengelola )</p>
                     </div>
                 </div>
             `);
@@ -1014,7 +997,7 @@
         function printRecapSirkulasiCustom(type) {
             const s = document.getElementById('repStart').value;
             const e = document.getElementById('repEnd').value;
-            if (!s || !e) return alert("Harap pilih tanggal 'Dari' dan 'Sampai' terlebih dahulu pada form di atas.");
+            if (!s || !e) return showToast("Pilih tanggal Dari dan Sampai dulu.", 'error');
             printRecapNew(type, s, e);
         }
 
