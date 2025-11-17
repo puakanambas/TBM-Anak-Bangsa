@@ -3,17 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>TBM Anak Bangsa - Kab. Kepulauan Anambas</title>
+    <title>Taman Bacaan Masyarakat (TBM) Anak Bangsa - Kab. Kepulauan Anambas</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
     <style>
         body { 
             font-family: 'Plus Jakarta Sans', sans-serif; 
-            background-color: #f1f5f9; 
             -webkit-tap-highlight-color: transparent;
             overflow: hidden; /* Mencegah scroll pada body utama untuk layout admin */
         }
         
+        .visitor-background {
+            background-color: #f1f5f9; /* Ini adalah slate-100 */
+        }
+
         /* Animations */
         .fade-in { animation: fadeIn 0.4s ease-out forwards; opacity: 0; transform: translateY(10px); }
         @keyframes fadeIn { to { opacity: 1; transform: translateY(0); } }
@@ -76,12 +79,12 @@
             #printArea { display: block !important; position: absolute; left: 0; top: 0; width: 100%; margin: 0; padding: 0; background: white; z-index: 9999; }
             #printArea table { width: 100%; border-collapse: collapse; }
             #printArea th, #printArea td { border: 1px solid #000; padding: 8px; }
-            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !important; } 
+            * { -webkit-print-color-adjust: exact !important; print-color-adjust: exact !imporant; } 
             @page { margin: 1cm; size: auto; }
         }
     </style>
 </head>
-<body class="text-slate-800 h-screen w-full flex flex-col bg-slate-100">
+<body class="text-slate-800 h-screen w-full flex flex-col">
 
     <!-- TOAST CONTAINER -->
     <div id="toast-container"></div>
@@ -265,7 +268,7 @@
             else renderAdmin(app); 
         }
 
-        // --- VISITOR VIEW ---
+        // --- VISITOR VIEW (RESPONSIVE BARU) ---
         function renderVisitor(container) {
             const tb = books.length; 
             const tm = members.filter(m => m.active).length; 
@@ -273,78 +276,127 @@
             const tv = visitors.filter(v => v.date === today).length;
 
             container.innerHTML = `
-                <div class="w-full h-full overflow-y-auto bg-slate-50 custom-scrollbar">
-                    <div class="w-full max-w-md mx-auto bg-white shadow-2xl relative flex flex-col min-h-screen overflow-hidden">
-                        <!-- Header -->
-                        <div class="curved-header pt-12 px-6 text-center relative">
-                            <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
-                            <div class="bg-white/20 backdrop-blur-md w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-lg">
-                                <svg class="w-8 h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253"/></svg>
+                <div class="w-full h-full overflow-y-auto visitor-background custom-scrollbar">
+                    <div class="w-full min-h-full p-4 md:p-8 flex items-center justify-center">
+                        
+                        <!-- Layout Wrapper (Desktop: Split, Mobile: Card) -->
+                        <div class="w-full max-w-md md:max-w-5xl bg-white shadow-2xl rounded-3xl overflow-hidden md:flex">
+
+                            <!-- Sisi Kiri (Branding) - HANYA TAMPIL DI DESKTOP -->
+                            <div class="hidden md:flex flex-1 flex-col justify-center p-8 lg:p-12 bg-emerald-600 border-r border-emerald-700">
+                                <div class="flex items-center gap-4 mb-4">
+                                     <div class="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg flex-shrink-0 p-2">
+                                        <img src="https://iili.io/fJu70bI.md.png" alt="TBM Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/64x64/ffffff/emerald?text=TBM'">
+                                    </div>
+                                    <div>
+                                        <h1 class="text-3xl font-extrabold text-white tracking-tight">Taman Bacaan Masyarakat (TBM) Anak Bangsa</h1>
+                                        <p class="text-lg font-medium text-emerald-100">Kabupaten Kepulauan Anambas</p>
+                                    </div>
+                                </div>
+                                <p class="text-base text-emerald-50 leading-relaxed mt-4">
+                                    Selamat datang di portal pengunjung. Silakan gunakan aplikasi di samping untuk mencatat kehadiran Anda atau mencari koleksi buku yang tersedia di perpustakaan kami.
+                                </p>
+
+                                <div class="mt-10">
+                                    <button onclick="openLoginModal()" class="inline-flex items-center gap-2.5 bg-white text-emerald-700 font-bold text-sm px-6 py-3 rounded-xl shadow-lg hover:shadow-xl hover:scale-105 transition-all transform">
+                                        <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15m-3-3l-3-3m0 0l3-3m-3 3h12" /></svg>
+                                        <span>Login Panel Admin</span>
+                                    </button>
+                                </div>
                             </div>
-                            <h1 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-sm uppercase">TBM Anak Bangsa</h1>
-                            <p class="text-emerald-100 text-sm font-medium mt-1 opacity-90">Kab. Kepulauan Anambas</p>
-                            
-                            <button onclick="openLoginModal()" class="absolute top-6 right-6 bg-white/10 hover:bg-white/20 p-2 rounded-xl text-white transition backdrop-blur-md border border-white/20">
-                                <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M11 16l-4-4m0 0l4-4m-4 4h14m-5 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h7a3 3 0 013 3v1"/></svg>
-                            </button>
+
+                            <!-- Sisi Kanan (Aplikasi) - Tampil di HP & Desktop -->
+                            <div class="w-full md:w-[420px] flex-shrink-0 relative flex flex-col">
+                                <!-- Header -->
+                                <div class="curved-header pt-12 px-6 text-center relative md:rounded-tr-3xl md:rounded-bl-none">
+                                    <div class="absolute top-0 left-0 w-full h-full opacity-10 bg-[url('https://www.transparenttextures.com/patterns/cubes.png')]"></div>
+                                    
+                                    <div class="bg-white/20 backdrop-blur-md w-16 h-16 mx-auto rounded-2xl flex items-center justify-center mb-4 border border-white/30 shadow-lg md:hidden p-2">
+                                        <img src="https://iili.io/fJu70bI.md.png" alt="TBM Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/64x64/ffffff/emerald?text=TBM'">
+                                    </div>
+                                    <h1 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-sm uppercase md:hidden">TBM Anak Bangsa</h1>
+                                    <p class="text-emerald-100 text-sm font-medium mt-1 opacity-90 md:hidden">Kab. Kepulauan Anambas</p>
+                                    
+                                    <div class="hidden md:block pb-4">
+                                        <h1 class="text-2xl font-extrabold text-white tracking-tight drop-shadow-sm">Portal Pengunjung</h1>
+                                        <p class="text-emerald-100 text-sm font-medium mt-1 opacity-90">Sistem Informasi TBM</p>
+                                    </div>
+                                    
+                                </div>
+
+                                <!-- Main Content -->
+                                <div class="px-6 -mt-10 relative z-10 space-y-5 fade-in pb-10 flex-1 flex flex-col">
+                                    <div class="flex-1">
+                                        <!-- Stats Card -->
+                                        <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex justify-between items-center">
+                                            <div class="flex flex-col items-center group cursor-pointer">
+                                                <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #3b82f6; --percent: 75%;">
+                                                    <div class="donut-inner text-blue-600">${tb}</div>
+                                                </div>
+                                                <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Koleksi</span>
+                                            </div>
+                                            <div class="w-px h-10 bg-slate-100"></div>
+                                            <div class="flex flex-col items-center group cursor-pointer">
+                                                <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #a855f7; --percent: 60%;">
+                                                    <div class="donut-inner text-purple-600">${tm}</div>
+                                                </div>
+                                                <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Anggota</span>
+                                            </div>
+                                            <div class="w-px h-10 bg-slate-100"></div>
+                                            <div class="flex flex-col items-center group cursor-pointer">
+                                                <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #f97316; --percent: ${Math.min(tv*10,100)}%;">
+                                                    <div class="donut-inner text-orange-600">${tv}</div>
+                                                </div>
+                                                <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Tamu</span>
+                                            </div>
+                                        </div>
+
+                                        <!-- Menu Buttons -->
+                                        <button onclick="openVisitorForm()" class="mt-5 w-full bg-white p-4 rounded-3xl shadow-md border border-slate-50 flex items-center justify-between gap-4 hover:shadow-xl hover:border-orange-100 transition-all active:scale-[0.98] group relative overflow-hidden hover:scale-[1.02]">
+                                            <div class="absolute inset-0 bg-orange-50 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+                                            <div class="flex items-center gap-4 relative z-10">
+                                                <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                                                </div>
+                                                <div class="text-left">
+                                                    <h3 class="font-bold text-lg text-slate-800 group-hover:text-orange-700 transition-colors">Buku Tamu</h3>
+                                                    <p class="text-slate-500 text-xs">Isi kehadiran pengunjung</p>
+                                                </div>
+                                            </div>
+                                            <svg class="w-6 h-6 text-slate-300 group-hover:text-orange-600 transition-colors relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        </button>
+
+                                        <button onclick="openCatalog()" class="mt-5 w-full bg-white p-4 rounded-3xl shadow-md border border-slate-50 flex items-center justify-between gap-4 hover:shadow-xl hover:border-blue-100 transition-all active:scale-[0.98] group relative overflow-hidden hover:scale-[1.02]">
+                                            <div class="absolute inset-0 bg-blue-50 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
+                                            <div class="flex items-center gap-4 relative z-10">
+                                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm group-hover:scale-110 transition-transform">
+                                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
+                                                </div>
+                                                <div class="text-left">
+                                                    <h3 class="font-bold text-lg text-slate-800 group-hover:text-blue-700 transition-colors">Cari Buku</h3>
+                                                    <p class="text-slate-500 text-xs">Lihat stok & lokasi buku</p>
+                                                </div>
+                                            </div>
+                                            <svg class="w-6 h-6 text-slate-300 group-hover:text-blue-600 transition-colors relative z-10" fill="none" stroke="currentColor" viewBox="0 0 24 24" stroke-width="2.5"><path stroke-linecap="round" stroke-linejoin="round" d="M9 5l7 7-7 7" /></svg>
+                                        </button>
+                                    </div>
+
+                                    <div class="text-center mt-8">
+                                        <!-- TOMBOL LOGIN BARU UNTUK MOBILE -->
+                                        <button onclick="openLoginModal()" class="md:hidden text-xs text-slate-500 hover:text-emerald-600 font-bold py-2 px-4 rounded-full transition">
+                                            Login Admin
+                                        </button>
+                                        <!-- ------------------------------ -->
+                                        <p class="text-[10px] text-slate-400 font-medium mt-2">© 2025 TBM Anak Bangsa</p>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
 
-                        <!-- Main Content -->
-                        <div class="px-6 -mt-10 relative z-10 space-y-5 fade-in pb-10">
-                            <!-- Stats Card -->
-                            <div class="bg-white rounded-3xl p-6 shadow-xl border border-slate-100 flex justify-between items-center">
-                                <div class="flex flex-col items-center group cursor-pointer">
-                                    <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #3b82f6; --percent: 75%;">
-                                        <div class="donut-inner text-blue-600">${tb}</div>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Koleksi</span>
-                                </div>
-                                <div class="w-px h-10 bg-slate-100"></div>
-                                <div class="flex flex-col items-center group cursor-pointer">
-                                    <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #a855f7; --percent: 60%;">
-                                        <div class="donut-inner text-purple-600">${tm}</div>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Anggota</span>
-                                </div>
-                                <div class="w-px h-10 bg-slate-100"></div>
-                                <div class="flex flex-col items-center group cursor-pointer">
-                                    <div class="donut-chart group-hover:scale-105 transition-transform" style="--color: #f97316; --percent: ${Math.min(tv*10,100)}%;">
-                                        <div class="donut-inner text-orange-600">${tv}</div>
-                                    </div>
-                                    <span class="text-[10px] font-bold text-slate-400 mt-2 uppercase tracking-wider">Tamu</span>
-                                </div>
-                            </div>
-
-                            <!-- Menu Buttons -->
-                            <button onclick="openVisitorForm()" class="w-full bg-white p-4 rounded-3xl shadow-md border border-slate-50 flex items-center gap-4 hover:shadow-lg hover:border-orange-100 transition-all active:scale-[0.98] group relative overflow-hidden">
-                                <div class="absolute inset-0 bg-orange-50 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-                                <div class="w-12 h-12 bg-orange-100 text-orange-600 rounded-2xl flex items-center justify-center shadow-sm relative z-10 group-hover:scale-110 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
-                                </div>
-                                <div class="text-left relative z-10">
-                                    <h3 class="font-bold text-lg text-slate-800 group-hover:text-orange-700 transition-colors">Buku Tamu</h3>
-                                    <p class="text-slate-500 text-xs">Isi kehadiran pengunjung</p>
-                                </div>
-                            </button>
-
-                            <button onclick="openCatalog()" class="w-full bg-white p-4 rounded-3xl shadow-md border border-slate-50 flex items-center gap-4 hover:shadow-lg hover:border-blue-100 transition-all active:scale-[0.98] group relative overflow-hidden">
-                                <div class="absolute inset-0 bg-blue-50 transform -translate-x-full group-hover:translate-x-0 transition-transform duration-500"></div>
-                                <div class="w-12 h-12 bg-blue-100 text-blue-600 rounded-2xl flex items-center justify-center shadow-sm relative z-10 group-hover:scale-110 transition-transform">
-                                    <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"/></svg>
-                                </div>
-                                <div class="text-left relative z-10">
-                                    <h3 class="font-bold text-lg text-slate-800 group-hover:text-blue-700 transition-colors">Cari Buku</h3>
-                                    <p class="text-slate-500 text-xs">Lihat stok & lokasi buku</p>
-                                </div>
-                            </button>
-
-                            <div class="text-center mt-8">
-                                <p class="text-[10px] text-slate-400 font-medium">© 2025 TBM Anak Bangsa</p>
-                            </div>
-                        </div>
                     </div>
                 </div>`;
         }
+
 
         // --- ADMIN VIEW (FIXED LAYOUT) ---
         function renderAdmin(container) {
@@ -355,9 +407,11 @@
                 <!-- Sidebar (Desktop) - Fixed Width, Full Height -->
                 <div class="hidden md:flex flex-col w-64 bg-slate-900 text-white h-full flex-shrink-0 shadow-2xl relative z-30">
                     <div class="p-6 border-b border-slate-800 flex flex-col items-center">
-                        <div class="w-12 h-12 bg-emerald-500 rounded-xl flex items-center justify-center text-2xl mb-3 shadow-lg">📚</div>
+                        <div class="w-12 h-12 bg-white rounded-xl flex items-center justify-center text-2xl mb-3 shadow-lg p-2">
+                             <img src="https://iili.io/fJu70bI.md.png" alt="TBM Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/48x48/ffffff/emerald?text=TBM'">
+                        </div>
                         <div class="font-bold text-lg tracking-wide text-center leading-tight">TBM Anak Bangsa</div>
-                        <div class="text-[10px] text-slate-400 mt-1">Anambas</div>
+                        <div class="text-[10px] text-slate-400 mt-1">Kab. Kepulauan Anambas</div>
                         <div class="text-[10px] text-emerald-300 mt-2 bg-slate-800 px-3 py-1 rounded-full uppercase font-bold">${currentUser.role}</div>
                     </div>
                     <nav class="flex-1 p-4 space-y-2 overflow-y-auto custom-scrollbar">
@@ -366,7 +420,7 @@
                         ${renderSidebar('buku','Buku', 'M12 6.253v13m0-13C10.832 5.477 9.246 5 7.5 5S4.168 5.477 3 6.253v13C4.168 18.477 5.754 18 7.5 18s3.332.477 4.5 1.253m0-13C13.168 5.477 14.754 5 16.5 5c1.747 0 3.332.477 4.5 1.253v13C19.832 18.477 18.247 18 16.5 18c-1.746 0-3.332.477-4.5 1.253')}
                         ${renderSidebar('peminjaman','Sirkulasi', 'M8 7h12m0 0l-4-4m4 4l-4 4m0 6H4m0 0l4 4m-4-4l4-4')}
                         ${isAdmin ? renderSidebar('laporan','Laporan', 'M9 17v-2m3 2v-4m3 4v-6m2 10H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z') : ''}
-                        ${isAdmin ? renderSidebar('pengaturan','Pengaturan', 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z') : ''}
+                        ${isAdmin ? renderSidebar('pengaturan','Pengaturan', 'M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924-1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066 2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z M15 12a3 3 0 11-6 0 3 3 0 016 0z') : ''}
                     </nav>
                     <div class="p-4 border-t border-slate-800">
                         <button onclick="setView('visitor')" class="w-full bg-red-500/10 hover:bg-red-600 text-red-400 hover:text-white py-3 rounded-xl font-bold transition flex items-center justify-center gap-2 text-sm">
@@ -381,7 +435,9 @@
                     <!-- Mobile Header -->
                     <div class="md:hidden bg-white px-4 py-3 shadow-sm flex justify-between items-center shrink-0 z-20 border-b border-slate-200">
                         <div class="flex items-center gap-2">
-                            <div class="w-8 h-8 bg-emerald-500 rounded-lg flex items-center justify-center text-white font-bold text-sm">T</div>
+                            <div class="w-8 h-8 bg-white rounded-lg flex items-center justify-center text-white font-bold text-sm p-1">
+                                <img src="https://iili.io/fJu70bI.md.png" alt="TBM Logo" class="w-full h-full object-contain" onerror="this.src='https://placehold.co/32x32/ffffff/emerald?text=TBM'">
+                            </div>
                             <div class="font-bold text-base text-slate-800 truncate max-w-[150px]">Panel Admin</div>
                         </div>
                         <button onclick="setView('visitor')" class="text-[10px] bg-red-50 text-red-500 px-3 py-1.5 rounded-lg font-bold border border-red-100">Keluar</button>
@@ -910,25 +966,43 @@
             setTimeout(() => { window.print(); }, 500); 
         }
 
+        // --- PERUBAHAN: FUNGSI CETAK KARTU DENGAN QR CODE & DATA BARU ---
         function printCardNew(id) {
             const m = members.find(x => x.id === id);
+            const genderFull = m.gender === 'L' ? 'Laki-laki' : 'Perempuan';
+            const ttl = `${m.birthPlace || '-'}, ${m.birthDate || '-'}`;
+
             printToArea(`
                 <div style="width:85.6mm;height:53.98mm;border:1px solid #000;border-radius:8px;overflow:hidden;position:relative;font-family:sans-serif;background:white;-webkit-print-color-adjust:exact;">
-                    <div style="background:linear-gradient(135deg,#059669,#047857);height:15mm;display:flex;align-items:center;padding:0 5mm;color:white;">
-                        <div style="font-size:20px;margin-right:3mm;">📚</div>
-                        <div>
-                            <div style="font-weight:800;font-size:12px;line-height:1;">TBM Anak Bangsa</div>
-                            <div style="font-size:8px;opacity:0.9;">Kab. Kepulauan Anambas</div>
+                    <!-- Header -->
+                    <div style="background:linear-gradient(135deg,#059669,#047857);height:14mm;display:flex;align-items:center;padding:0 4mm;color:white;">
+                        <div style="width:10mm; height: 10mm; margin-right:3mm;flex-shrink:0; background: white; border-radius: 4px; padding: 1px; display: flex; align-items: center; justify-content: center;">
+                            <img src="https://iili.io/fJu70bI.md.png" alt="Logo" style="width: 100%; height: 100%; object-fit: contain;" onerror="this.style.display='none'">
+                        </div>
+                        <div style="min-width:0;">
+                            <div style="font-weight:800;font-size:10px;line-height:1.2;white-space:nowrap;">Taman Bacaan Masyarakat (TBM) Anak Bangsa</div>
+                            <div style="font-size:8px;opacity:0.9;white-space:nowrap;">Kabupaten Kepulauan Anambas</div>
                         </div>
                     </div>
-                    <div style="padding:4mm;display:flex;gap:4mm;">
-                        <div style="width:22mm;height:26mm;background:#f0f0f0;border:1px solid #ddd;overflow:hidden;">
+                    <!-- Body Content -->
+                    <div style="padding:3mm 4mm;display:flex;gap:4mm;align-items:center;">
+                        <!-- Foto -->
+                        <div style="width:22mm;height:28mm;background:#f0f0f0;border:1px solid #ddd;overflow:hidden;flex-shrink:0;">
                              ${m.photo ? `<img src="${m.photo}" style="width:100%;height:100%;object-fit:cover;">` : ''}
                         </div>
-                        <div style="font-size:10px;line-height:1.4;flex:1;">
-                            <div style="font-size:12px;font-weight:bold;color:#333;margin-bottom:2px;text-transform:uppercase;">${m.name}</div>
-                            <div style="font-family:monospace;background:#eee;display:inline-block;padding:1px 4px;border-radius:3px;margin-bottom:4px;font-weight:bold;">${m.id}</div>
-                            <div style="color:#555;font-size:8px;">${m.address}</div>
+                        
+                        <!-- Data Teks -->
+                        <div style="font-size:8px;line-height:1.45;flex:1;min-width:0;">
+                            <div style="font-size:11px;font-weight:bold;color:#333;margin-bottom:1px;text-transform:uppercase;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;" title="${m.name}">${m.name}</div>
+                            <div style="font-family:monospace;background:#eee;display:inline-block;padding:1px 4px;border-radius:3px;margin-bottom:2px;font-weight:bold;font-size:9px;">${m.id}</div>
+                            <div style="color:#555;margin-top:2px;font-size:7.5px;"><b>TTL:</b> ${ttl}</div>
+                            <div style="color:#555;font-size:7.5px;"><b>Gender:</b> ${genderFull}</div>
+                            <div style="color:#555;font-size:7.5px;line-height:1.3;"><b>Alamat:</b> ${m.address || '-'}</div>
+                        </div>
+                        
+                        <!-- QR Code -->
+                        <div style="width:20mm;height:20mm;flex-shrink:0;display:flex;align-items:center;justify-content:center;">
+                            <img src="https://api.qrserver.com/v1/create-qr-code/?size=70x70&data=${m.id}&ecc=L&margin=0" alt="QR Code" style="width:100%;height:100%;">
                         </div>
                     </div>
                 </div>
@@ -939,7 +1013,7 @@
             const l = loans.find(x => x.id === id);
             printToArea(`
                 <div style="width:76mm;padding:5px;font-family:'Courier New', monospace;font-size:12px;">
-                    <center><b>TBM Anak Bangsa</b><br>Anambas<br>----------------</center>
+                    <center><b>TBM Anak Bangsa</b><br>Kab. Kepulauan Anambas<br>----------------</center>
                     <br>
                     Tgl: ${l.date}<br>
                     Nama: ${l.memberName}<br>
@@ -979,7 +1053,13 @@
 
             printToArea(`
                 <div style="font-family:sans-serif; padding:20px;">
-                    <h3 style="text-align:center;margin-bottom:5px;">TBM Anak Bangsa</h3>
+                    <!-- Logo Ditambahkan Di Sini -->
+                    <div style="text-align:center; margin-bottom: 15px;">
+                        <img src="https://iili.io/fJu70bI.md.png" alt="Logo" style="height: 60px; object-fit: contain; margin: 0 auto;" onerror="this.style.display='none'">
+                    </div>
+                    <!-- Akhir Logo -->
+
+                    <h3 style="text-align:center;margin-bottom:5px;">Taman Bacaan Masyarakat (TBM) Anak Bangsa</h3>
                     <p style="text-align:center;margin-top:0;font-size:12px;">Kabupaten Kepulauan Anambas</p>
                     <h4 style="text-align:center;text-decoration:underline;margin:20px 0;">${t}</h4>
                     ${s ? `<p style="text-align:center;font-size:11px;">Periode: ${s} s/d ${e}</p>` : ''}
